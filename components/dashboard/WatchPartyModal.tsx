@@ -6,7 +6,7 @@ import { ArrowRight, Check, ExternalLink, LogIn, Play, Puzzle, Send, TriangleAle
 import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
 import { BrandMark } from "@/components/onboarding/BrandMark";
-import { ExtensionStatusBadge, InstallSteps } from "@/components/extension/ExtensionInstall";
+import { ExtensionStatusBadge, ExtensionUpdateNotice, InstallSteps } from "@/components/extension/ExtensionInstall";
 import { SERVICE_BY_ID } from "@/lib/data/services";
 import { SYNC_SUPPORTED, canSync, platformChoices, watchLink } from "@/lib/data/watch-links";
 import { useExtensionStatus } from "@/lib/extension";
@@ -242,6 +242,8 @@ export function WatchPartyModal({ onClose, title, opened: openedOnLaunch }: Prop
                 ))}
               </ol>
             </section>
+
+            <ExtensionUpdateNotice />
 
             {/* Extension check — the party can't start without it */}
             {extension.state !== "installed" && (
