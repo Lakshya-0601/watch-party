@@ -9,10 +9,8 @@
  * authenticates sockets and translates between WebSocket frames and the
  * room's HTTP API. Extension users and web-app users therefore share rooms.
  *
- * Run:  standalone on its own port in development (`npm run dev` starts it;
- *       `npm run realtime` alone), or attached to the app's HTTP server at
- *       /realtime in production (server.mjs → startGateway).
- * Env:  REALTIME_PORT (3108) · APP_URL (http://localhost:3107; the public site URL in production)
+ * Run:  npm run realtime   (alongside `npm run dev`)
+ * Env:  REALTIME_PORT (3108) · APP_URL (http://localhost:3107)
  *       REELROOM_TOKEN_SECRET (must match the Next app) · ALLOWED_ORIGINS (csv, optional)
  *
  * Clock note: `pong.serverTime` comes from this process. Run it on the same
@@ -35,7 +33,6 @@
  */
 
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { pathToFileURL } from "node:url";
 import { WebSocketServer } from "ws";
 
 // Share the Next app's settings (REELROOM_TOKEN_SECRET must match it). Values
@@ -49,10 +46,7 @@ for (const file of [".env.local", ".env"]) {
 }
 
 const PORT = Number(process.env.REALTIME_PORT ?? 3108);
-// Public site URL; Render provides RENDER_EXTERNAL_URL automatically
-const APP_URL = (process.env.APP_URL ?? process.env.RENDER_EXTERNAL_URL ?? "http://localhost:3107").replace(/\/$/, "");
-/** Where the room API lives; startGateway() points it at the same process in production. */
-let roomServer = APP_URL;
+const APP_URL = (process.env.APP_URL ?? "http://localhost:3107").replace(/\/$/, "");
 const SECRET = process.env.REELROOM_TOKEN_SECRET ?? "reelroom-dev-secret-change-me";
 const EXTRA_ORIGINS = (process.env.ALLOWED_ORIGINS ?? "").split(",").map((s) => s.trim()).filter(Boolean);
 
@@ -95,7 +89,7 @@ function originAllowed(origin) {
 
 async function postJson(path, body) {
   try {
-    const res = await fetch(`${roomServer}${path}`, {
+    const res = await fetch(`${APP_URL}${path}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -115,7 +109,7 @@ async function followRoom({ code, pid, signal, onView, onStatus }) {
   let delay = 500;
   while (!signal.aborted) {
     try {
-      const res = await fetch(`${roomServer}/api/rooms/${code}?pid=${encodeURIComponent(pid)}`, {
+      const res = await fetch(`${APP_URL}/api/rooms/${code}?pid=${encodeURIComponent(pid)}`, {
         signal,
         headers: { Accept: "text/event-stream" },
       });
@@ -156,36 +150,13 @@ async function followRoom({ code, pid, signal, onView, onStatus }) {
 
 /* --------------------------------- server --------------------------------- */
 
-/**
- * Start the gateway.
- *  • `startGateway()` — its own WebSocket server on REALTIME_PORT (development).
- *  • `startGateway({ server, path, roomServerUrl })` — share an existing HTTP
- *    server (one public port, e.g. Render): upgrades on `path` become sockets.
- */
-export function startGateway({ server, path = "/realtime", roomServerUrl } = {}) {
-  if (roomServerUrl) roomServer = roomServerUrl.replace(/\/$/, "");
-  const wss = server
-    ? new WebSocketServer({ noServer: true, maxPayload: 16 * 1024 })
-    : new WebSocketServer({ port: PORT, maxPayload: 16 * 1024, verifyClient: ({ origin }) => originAllowed(origin) });
+const wss = new WebSocketServer({
+  port: PORT,
+  maxPayload: 16 * 1024,
+  verifyClient: ({ origin }) => originAllowed(origin),
+});
 
-  if (server) {
-    server.on("upgrade", (req, socket, head) => {
-      if (new URL(req.url ?? "/", "http://x").pathname !== path || !originAllowed(req.headers.origin)) {
-        socket.write("HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\n");
-        return socket.destroy();
-      }
-      wss.handleUpgrade(req, socket, head, (ws) => wss.emit("connection", ws, req));
-    });
-  }
-
-  wss.on("connection", (ws) => onConnection(ws));
-  startHeartbeat(wss);
-  if (!server) wss.on("listening", () => console.log(`[realtime] ws://localhost:${PORT}  →  room server ${roomServer}`));
-  else console.log(`[realtime] attached at ${path}  →  room server ${roomServer}`);
-  return wss;
-}
-
-function onConnection(ws) {
+wss.on("connection", (ws) => {
   /** @type {{ user: any, pid: string | null, code: string | null, abort: AbortController | null, frames: number[] }} */
   const session = { user: null, pid: null, code: null, abort: null, frames: [] };
   const send = (msg) => ws.readyState === ws.OPEN && ws.send(JSON.stringify(msg));
@@ -280,22 +251,21 @@ function onConnection(ws) {
   });
 
   ws.on("close", unsubscribe);
-}
+});
 
-/** Drop sockets that stopped answering pings (sleeping laptops, dead networks). */
-function startHeartbeat(wss) {
-  const heartbeat = setInterval(() => {
-    for (const ws of wss.clients) {
-      if (!ws.isAlive) {
-        ws.terminate();
-        continue;
-      }
-      ws.isAlive = false;
-      ws.ping();
+// Drop sockets that stopped answering pings (sleeping laptops, dead networks)
+const heartbeat = setInterval(() => {
+  for (const ws of wss.clients) {
+    if (!ws.isAlive) {
+      ws.terminate();
+      continue;
     }
-  }, HEARTBEAT_MS);
-  wss.on("close", () => clearInterval(heartbeat));
-}
+    ws.isAlive = false;
+    ws.ping();
+  }
+}, HEARTBEAT_MS);
+wss.on("close", () => clearInterval(heartbeat));
 
-// `node realtime/gateway.mjs` → standalone server (development)
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) startGateway();
+wss.on("listening", () => {
+  console.log(`[realtime] ws://localhost:${PORT}  →  room server ${APP_URL}`);
+});

@@ -1,4 +1,3 @@
-import type { NextRequest } from "next/server";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { crc32, deflateRawSync } from "node:zlib";
@@ -9,10 +8,6 @@ import { crc32, deflateRawSync } from "node:zlib";
  * Zips the unpacked extension (`extension/`) on the fly so people can install
  * it before it's on the Chrome Web Store: unzip → chrome://extensions →
  * Developer mode → Load unpacked. Dev-only folders are left out.
- *
- * Downloaded from a public site, the extension is configured for that site:
- * invite links, sign-in hand-off and the realtime socket (wss://site/realtime)
- * all point at it. Downloaded from localhost it keeps the dev defaults.
  */
 
 /** A file (or folder) inside extension/ — spelled out so the build only traces that folder. */
@@ -86,45 +81,7 @@ function zip(files: { name: string; data: Buffer }[]) {
   return Buffer.concat([...locals, ...centrals, end]);
 }
 
-/** The public origin people reached this site at (APP_URL, or Render's RENDER_EXTERNAL_URL; else the proxy headers). */
-function publicOrigin(req: NextRequest): string {
-  const configured = (process.env.APP_URL ?? process.env.RENDER_EXTERNAL_URL)?.replace(/\/$/, "");
-  if (configured) return new URL(configured).origin;
-  const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host") ?? req.nextUrl.host;
-  const proto = req.headers.get("x-forwarded-proto")?.split(",")[0] ?? req.nextUrl.protocol.replace(":", "");
-  return `${proto}://${host}`;
-}
-
-const isLocal = (origin: string) => /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/.test(origin);
-
-interface Manifest {
-  host_permissions: string[];
-  content_scripts: { matches: string[]; js: string[] }[];
-}
-
-/** Point the extension at `origin`: config values, host permission, and the app-bridge content script. */
-function configureFor(name: string, data: Buffer, origin: string): Buffer {
-  const realtime = process.env.PUBLIC_REALTIME_URL ?? `${origin.replace(/^http/, "ws")}/realtime`;
-  if (name === "shared/config.js") {
-    const src = data
-      .toString("utf8")
-      .replace(/APP_ORIGIN: "[^"]*"/, `APP_ORIGIN: ${JSON.stringify(origin)}`)
-      .replace(/REALTIME_URL: "[^"]*"/, `REALTIME_URL: ${JSON.stringify(realtime)}`);
-    return Buffer.from(src, "utf8");
-  }
-  if (name === "manifest.json") {
-    const manifest = JSON.parse(data.toString("utf8")) as Manifest;
-    const pattern = `${origin}/*`;
-    if (!manifest.host_permissions.includes(pattern)) manifest.host_permissions.push(pattern);
-    for (const script of manifest.content_scripts) {
-      if (script.js.includes("app/app-bridge.js") && !script.matches.includes(pattern)) script.matches.push(pattern);
-    }
-    return Buffer.from(JSON.stringify(manifest, null, 2) + "\n", "utf8");
-  }
-  return data;
-}
-
-export async function GET(req: NextRequest) {
+export async function GET() {
   let names: string[];
   try {
     names = await listFiles();
@@ -132,13 +89,7 @@ export async function GET(req: NextRequest) {
     console.error("[extension] can't read", inExtension(""), err);
     return new Response("The extension files are missing on this server.", { status: 500 });
   }
-  const origin = publicOrigin(req);
-  const files = await Promise.all(
-    names.map(async (name) => {
-      const data = await readFile(inExtension(name));
-      return { name, data: isLocal(origin) ? data : configureFor(name, data, origin) };
-    }),
-  );
+  const files = await Promise.all(names.map(async (name) => ({ name, data: await readFile(inExtension(name)) })));
   return new Response(new Uint8Array(zip(files)), {
     headers: {
       "Content-Type": "application/zip",

@@ -7,7 +7,6 @@ import { MoodRecommender } from "@/components/dashboard/MoodRecommender";
 import { WatchPartyModal, openStreamingTab } from "@/components/dashboard/WatchPartyModal";
 import { TitleDetailModal } from "@/components/dashboard/TitleDetailModal";
 import { ProfileDrawer } from "@/components/dashboard/ProfileDrawer";
-import { ExtensionUpdateNotice } from "@/components/extension/ExtensionInstall";
 import type { SentimentSummary } from "@/lib/sentiment/types";
 import { obviousPlatform, watchLink } from "@/lib/data/watch-links";
 import { useAppState } from "@/lib/store";
@@ -65,7 +64,6 @@ export function DashboardView() {
     <>
       <TopNav onCreateRoom={() => openParty()} onOpenProfile={() => setProfileOpen(true)} />
       <main className="mx-auto w-full max-w-7xl flex-1 space-y-14 px-4 pb-24 pt-4 sm:px-6">
-        <ExtensionUpdateNotice />
         <HeroBanner onWatchTogether={openParty} onOpen={setDetail} />
         <MoodRecommender sentiment={sentiment} onOpen={setDetail} onWatchTogether={openParty} />
       </main>

@@ -11,25 +11,10 @@
  */
 
 import { useCallback, useSyncExternalStore } from "react";
-import manifest from "@/extension/manifest.json";
 
 /** Chrome Web Store listing, once published. Without it we offer the unpacked download. */
 export const EXTENSION_STORE_URL = process.env.NEXT_PUBLIC_EXTENSION_STORE_URL || null;
 export const EXTENSION_DOWNLOAD_URL = "/api/extension/download";
-
-/** The extension version this build of the site ships (extension/manifest.json). */
-export const LATEST_EXTENSION_VERSION: string = manifest.version;
-
-const versionParts = (v: string) => v.split(".").map((n) => Number(n) || 0);
-
-/** Installed, but older than the version this site ships — features may be missing. */
-export function isExtensionOutdated(s: ExtensionStatus) {
-  if (s.state !== "installed" || !s.version) return false;
-  const have = versionParts(s.version);
-  const latest = versionParts(LATEST_EXTENSION_VERSION);
-  for (let i = 0; i < 3; i++) if ((have[i] ?? 0) !== (latest[i] ?? 0)) return (have[i] ?? 0) < (latest[i] ?? 0);
-  return false;
-}
 
 export type ExtensionStatus =
   | { state: "checking" }

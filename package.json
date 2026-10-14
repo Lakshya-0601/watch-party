@@ -9,7 +9,7 @@
     "dev": "node scripts/dev.mjs -p 3107",
     "dev:next": "next dev",
     "build": "next build",
-    "start": "node server.mjs",
+    "start": "next start -p 3107",
     "lint": "eslint",
     "realtime": "node realtime/gateway.mjs"
   },
