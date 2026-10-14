@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "ReelRoom — Watch Party Sync",
   "short_name": "ReelRoom",
-  "version": "0.2.0",
-  "description": "Watch Netflix, Disney+ and Prime Video in sync with friends: shared play/pause/seek, live chat and reactions.",
+  "version": "0.2.1",
+  "description": "Watch Netflix, JioHotstar and Prime Video in sync with friends: shared play/pause/seek, live chat and reactions.",
   "icons": {
     "16": "icons/icon-16.png",
     "32": "icons/icon-32.png",
@@ -33,7 +33,7 @@
   ],
   "host_permissions": [
     "*://*.netflix.com/*",
-    "*://*.disneyplus.com/*",
+    "*://*.hotstar.com/*",
     "*://*.primevideo.com/*",
     "http://localhost/*",
     "http://127.0.0.1/*"
@@ -42,7 +42,7 @@
     {
       "matches": [
         "*://*.netflix.com/*",
-        "*://*.disneyplus.com/*",
+        "*://*.hotstar.com/*",
         "*://*.primevideo.com/*"
       ],
       "js": [
@@ -53,7 +53,7 @@
     {
       "matches": [
         "*://*.netflix.com/*",
-        "*://*.disneyplus.com/*",
+        "*://*.hotstar.com/*",
         "*://*.primevideo.com/*"
       ],
       "js": [

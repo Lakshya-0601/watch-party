@@ -34,12 +34,12 @@
   /** Which provider a URL belongs to (must match the server's MEDIA_HOSTS). */
   function providerForHost(hostname) {
     if (/(^|\.)netflix\.com$/.test(hostname)) return "netflix";
-    if (/(^|\.)disneyplus\.com$/.test(hostname)) return "disney";
+    if (/(^|\.)hotstar\.com$/.test(hostname)) return "hotstar";
     if (/(^|\.)primevideo\.com$/.test(hostname)) return "prime";
     return null;
   }
 
-  const PROVIDER_NAMES = { netflix: "Netflix", disney: "Disney+", prime: "Prime Video" };
+  const PROVIDER_NAMES = { netflix: "Netflix", hotstar: "JioHotstar", prime: "Prime Video" };
 
   /**
    * Where playback *should* be right now according to the room's shared

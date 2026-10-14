@@ -4,7 +4,7 @@ import type { Playback, RoomMedia } from "@/lib/rooms/types";
 
 const PROVIDER: Record<RoomMedia["provider"], { name: string; color: string }> = {
   netflix: { name: "Netflix", color: "#e50914" },
-  disney: { name: "Disney+", color: "#2f7bff" },
+  hotstar: { name: "JioHotstar", color: "#4f6bff" },
   prime: { name: "Prime Video", color: "#1fa8ff" },
 };
 

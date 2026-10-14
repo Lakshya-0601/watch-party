@@ -80,7 +80,7 @@ const MAX_RATE = 4;
  */
 const MEDIA_HOSTS: Record<MediaProvider, RegExp> = {
   netflix: /(^|\.)netflix\.com$/,
-  disney: /(^|\.)disneyplus\.com$/,
+  hotstar: /(^|\.)hotstar\.com$/,
   prime: /(^|\.)(primevideo\.com|amazon\.com)$/,
 };
 

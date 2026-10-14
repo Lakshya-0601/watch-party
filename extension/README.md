@@ -1,6 +1,6 @@
 # ReelRoom browser extension (Manifest V3)
 
-Watch Netflix, Disney+ and Prime Video in sync: shared play / pause / seek / speed, live chat, emoji reactions and host-controlled rooms — injected right into the streaming page. Every participant streams with their own subscription; the extension only synchronises the players.
+Watch Netflix, JioHotstar and Prime Video in sync: shared play / pause / seek / speed, live chat, emoji reactions and host-controlled rooms — injected right into the streaming page. Every participant streams with their own subscription; the extension only synchronises the players.
 
 ## Run it locally
 
@@ -63,7 +63,7 @@ Measured on a production build (`next build && next start`, same machine): room 
 ## Known limits
 
 * **Not yet verified on live streaming sites.** The DOM selectors, URL shapes and Netflix's (undocumented) player API in `site-adapters.js` / `netflix-bridge.js` reflect the sites at the time of writing and need checking with real accounts; failures degrade to plain `<video>` control and `document.title`.
-* Prime Video ad breaks pause syncing via a best-effort selector; Disney+/Prime "next episode" handovers rely on the URL change heuristic.
+* Prime Video ad breaks pause syncing via a best-effort selector; JioHotstar/Prime "next episode" handovers rely on the URL change heuristic.
 * **Playback timestamps:** playback changes carry `at` (the sender's clock-synced server time), so request latency doesn't shift other viewers.
 * The token is issued for the user in the web app's session cookie (`/api/extension/token`).
 * For production: set `APP_ORIGIN` / `REALTIME_URL` in `shared/config.js`, add your app origin to `host_permissions` + the app-bridge `matches`, and share `REELROOM_TOKEN_SECRET` between the app and the gateway.

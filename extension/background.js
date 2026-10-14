@@ -437,7 +437,7 @@ void restore();
 
 /** On install/update, add our scripts to tabs that were already open. */
 chrome.runtime.onInstalled.addListener(async () => {
-  const streaming = ["*://*.netflix.com/*", "*://*.disneyplus.com/*", "*://*.primevideo.com/*"];
+  const streaming = ["*://*.netflix.com/*", "*://*.hotstar.com/*", "*://*.primevideo.com/*"];
   const contentFiles = chrome.runtime.getManifest().content_scripts[1].js;
   for (const tab of await chrome.tabs.query({ url: streaming })) {
     try {

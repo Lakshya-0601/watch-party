@@ -20,25 +20,23 @@ export function BrandMark({ id, className }: { id: ServiceId; className?: string
           </g>
         </svg>
       );
-    case "disney":
+    case "hotstar":
       return (
         <svg {...common}>
-          <text
-            x="60"
-            y="33"
-            textAnchor="middle"
-            fill="#fff"
-            fontFamily="Georgia, 'Times New Roman', serif"
-            fontStyle="italic"
-            fontWeight="700"
-            fontSize="26"
-          >
-            Disney
+          {/* Wordmark with a small star, in the JioHotstar blue-to-violet */}
+          <defs>
+            <linearGradient id="hotstar-mark" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stopColor="#6a8dff" />
+              <stop offset="1" stopColor="#c35cff" />
+            </linearGradient>
+          </defs>
+          <path d="M14 14l2.6 5.4 5.9.8-4.3 4.1 1 5.9-5.2-2.8-5.2 2.8 1-5.9-4.3-4.1 5.9-.8z" fill="url(#hotstar-mark)" />
+          <text x="27" y="22" fill="#cfd8ff" fontFamily="Arial, Helvetica, sans-serif" fontWeight="700" fontSize="11" letterSpacing="1">
+            JIO
           </text>
-          <text x="104" y="27" fill="#5fb4ff" fontFamily="Arial, sans-serif" fontWeight="700" fontSize="22">
-            +
+          <text x="27" y="38" fill="#fff" fontFamily="Arial, Helvetica, sans-serif" fontWeight="800" fontSize="17">
+            hotstar
           </text>
-          <path d="M20 38 Q60 14 104 22" stroke="#5fb4ff" strokeWidth="1.5" fill="none" opacity="0.8" />
         </svg>
       );
     case "prime":

@@ -75,7 +75,13 @@ export function cleanPreferences(input: unknown): Preferences | null {
   const { services, genres, onboarded } = input as Record<string, unknown>;
   if (!Array.isArray(services) || !Array.isArray(genres)) return null;
   return {
-    services: [...new Set(services.filter((s): s is ServiceId => typeof s === "string" && SERVICE_IDS.has(s)))],
+    services: [
+      ...new Set(
+        services
+          .map((s) => (s === "disney" ? "hotstar" : s)) // Disney+ became JioHotstar
+          .filter((s): s is ServiceId => typeof s === "string" && SERVICE_IDS.has(s)),
+      ),
+    ],
     genres: [...new Set(genres.filter((g): g is Genre => typeof g === "string" && GENRE_IDS.has(g)))],
     onboarded: onboarded === true,
   };

@@ -87,7 +87,7 @@
       ? tabInfo.title
       : tabInfo
         ? `Open a title on ${tabInfo.providerName} and press play to start a party here.`
-        : "Open a title on Netflix, Disney+ or Prime Video to start a party here.";
+        : "Open a title on Netflix, JioHotstar or Prime Video to start a party here.";
   }
 
   function renderRoom(v) {

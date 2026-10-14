@@ -4,7 +4,7 @@ import type { LucideIcon } from "lucide-react";
 
 export type ServiceId =
   | "netflix"
-  | "disney"
+  | "hotstar"
   | "prime"
   | "appletv"
   | "max"

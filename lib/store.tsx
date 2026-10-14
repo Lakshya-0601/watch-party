@@ -28,7 +28,11 @@ const EMPTY: PersistedState = { user: null, services: [], genres: [], onboarded:
 function readStorage(): PersistedState {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    return raw ? { ...EMPTY, ...(JSON.parse(raw) as Partial<PersistedState>) } : EMPTY;
+    if (!raw) return EMPTY;
+    const saved = { ...EMPTY, ...(JSON.parse(raw) as Partial<PersistedState>) };
+    // Disney+ became JioHotstar
+    saved.services = saved.services.map((s) => ((s as string) === "disney" ? "hotstar" : s));
+    return saved;
   } catch {
     return EMPTY;
   }

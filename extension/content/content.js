@@ -1,5 +1,5 @@
 /**
- * Content script entry point on Netflix / Disney+ / Prime Video.
+ * Content script entry point on Netflix / JioHotstar / Prime Video.
  *
  *   VideoFinder ──video──► SyncEngine ◄──room playback── background (port)
  *                              │ user play/pause/seek          ▲

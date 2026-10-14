@@ -18,7 +18,7 @@ const q = encodeURIComponent;
 
 export const SERVICE_LINKS: Record<ServiceId, ServiceLinks> = {
   netflix: { home: "https://www.netflix.com/browse", search: (s) => `https://www.netflix.com/search?q=${q(s)}` },
-  disney: { home: "https://www.disneyplus.com/home", search: (s) => `https://www.disneyplus.com/search?q=${q(s)}` },
+  hotstar: { home: "https://www.hotstar.com/in/home", search: (s) => `https://www.hotstar.com/in/explore?search_query=${q(s)}` },
   prime: { home: "https://www.primevideo.com/", search: (s) => `https://www.primevideo.com/search?phrase=${q(s)}` },
   appletv: { home: "https://tv.apple.com/", search: (s) => `https://tv.apple.com/search?term=${q(s)}` },
   max: { home: "https://play.hbomax.com/", search: (s) => `https://play.hbomax.com/search?q=${q(s)}` },
@@ -45,7 +45,7 @@ const DIRECT: Partial<Record<string, Partial<Record<ServiceId, string>>>> = {
 };
 
 /** Services the ReelRoom extension can sync (keep in step with extension/manifest.json). */
-export const SYNC_SUPPORTED: ServiceId[] = ["netflix", "disney", "prime"];
+export const SYNC_SUPPORTED: ServiceId[] = ["netflix", "hotstar", "prime"];
 export const canSync = (id: ServiceId) => SYNC_SUPPORTED.includes(id);
 
 export function watchLink(title: Title | null, service: ServiceId): { url: string; direct: boolean } {

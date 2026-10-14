@@ -10,11 +10,11 @@ export const STREAMING_SERVICES: StreamingService[] = [
     tagline: "Originals & bingeable series",
   },
   {
-    id: "disney",
-    name: "Disney+",
-    color: "#2f7bff",
-    tile: "linear-gradient(135deg, #040b2c 0%, #0b3a7d 100%)",
-    tagline: "Marvel, Pixar, Star Wars",
+    id: "hotstar",
+    name: "JioHotstar",
+    color: "#4f6bff",
+    tile: "linear-gradient(135deg, #0a0b2e 0%, #2a1a6b 100%)",
+    tagline: "Disney, Marvel, HBO & live cricket",
   },
   {
     id: "prime",

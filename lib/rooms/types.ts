@@ -41,7 +41,7 @@ export interface Playback {
 }
 
 /** Streaming providers a room can point at (watched via the browser extension). */
-export type MediaProvider = "netflix" | "disney" | "prime";
+export type MediaProvider = "netflix" | "hotstar" | "prime";
 
 /**
  * What an extension-hosted room is watching. Web-only rooms have no media and

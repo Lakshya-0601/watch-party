@@ -4,7 +4,7 @@
  *
  * Streaming sites are single-page apps: the player <video> is created late,
  * replaced between episodes / ad breaks, and sometimes lives inside a shadow
- * root (Disney+'s <disney-web-player>). So we combine:
+ * root (some players nest it in a custom element). So we combine:
  *
  *   • a MutationObserver on <html> (childList + subtree) — reacts to players
  *     being inserted/removed in the light DOM, debounced to one scan / 250 ms;

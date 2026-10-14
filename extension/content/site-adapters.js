@@ -13,7 +13,7 @@
 
   const text = (selector) => document.querySelector(selector)?.textContent?.replace(/\s+/g, " ").trim() || null;
 
-  /** Plain HTMLMediaElement control — fine for Disney+ and Prime Video. */
+  /** Plain HTMLMediaElement control — fine for JioHotstar and Prime Video. */
   const generic = {
     play: (video) => video.play(),
     pause: (video) => video.pause(),
@@ -85,17 +85,17 @@
     },
   };
 
-  /* ------------------------------------------------------------- Disney+ -- */
+  /* ---------------------------------------------------------- JioHotstar -- */
 
-  const disney = {
+  const hotstar = {
     ...generic,
-    id: "disney",
-    name: "Disney+",
-    isWatchPage: () => /^\/(?:[a-z-]+\/)?(?:video|play)\/[\w-]+/.test(location.pathname),
-    canonicalUrl: () => `https://www.disneyplus.com${location.pathname.replace(/^\/[a-z]{2}-[a-z]{2}(?=\/)/, "")}`,
-    title: () =>
-      text(".title-field") ?? text('[data-testid="title-field"]') ??
-      document.title.replace(/\s*[|–-]\s*Disney\+\s*$/i, "").replace(/^Watch\s+/i, "").trim(),
+    id: "hotstar",
+    name: "JioHotstar",
+    // /in/movies/fast-x/1971309276/watch · /in/shows/<show>/<id>/<episode>/<id>/watch
+    isWatchPage: () => /\/watch\/?$/.test(location.pathname),
+    canonicalUrl: () => `https://www.hotstar.com${location.pathname.replace(/\/$/, "")}`,
+    // Page titles look like "Watch Fast X - JioHotstar"
+    title: () => document.title.replace(/^Watch\s+/i, "").replace(/\s*[|–-]\s*(?:Jio)?Hotstar.*$/i, "").trim(),
   };
 
   /* --------------------------------------------------------- Prime Video -- */
@@ -120,5 +120,5 @@
       Boolean(document.querySelector(".atvwebplayersdk-ad-timer-text, .atvwebplayersdk-adtimeindicator-text, [class*='adtimeindicator']")),
   };
 
-  ReelRoom.adapters = { netflix, disney, prime };
+  ReelRoom.adapters = { netflix, hotstar, prime };
 })();
