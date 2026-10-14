@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- ReelRoom mark: same geometry as extension/scripts/make-icons.mjs -->
+  <circle cx="50" cy="50" r="48" fill="#ff3b5c"/>
+  <circle cx="50" cy="50" r="39.5" fill="#0f0f16"/>
+  <path d="M38 31v38l32-19z" fill="#ff3b5c"/>
+</svg>

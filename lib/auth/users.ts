@@ -1,52 +1,53 @@
 import "server-only";
-import { randomBytes, scrypt, timingSafeEqual } from "node:crypto";
-import { promisify } from "node:util";
-import { jsonStore } from "@/lib/server/json-store";
-import type { User } from "@/lib/types";
+import type { DecodedIdToken } from "firebase-admin/auth";
+import { FieldValue } from "firebase-admin/firestore";
+import { GENRES } from "@/lib/data/genres";
+import { STREAMING_SERVICES } from "@/lib/data/services";
+import { firestore } from "@/lib/firebase/admin";
+import type { Genre, ServiceId, User } from "@/lib/types";
 
 /**
- * Account store for email + password and Google sign-ins.
+ * Accounts live in Firebase Auth; everything else about a person lives in
+ * Firestore at `users/{uid}`:
  *
- * Persisted as JSON in `.data/users.json` (git-ignored) so accounts survive
- * restarts in local development. Swap for a real database before deploying —
- * serverless hosts don't keep a writable disk between requests.
+ *   { name, email, picture, provider, services, genres, onboarded, createdAt, lastLoginAt }
+ *
+ * Only the server touches Firestore (Admin SDK), so the security rules can
+ * deny all client access — see firestore.rules.
  */
 
-interface StoredUser {
-  email: string;
-  name: string;
-  picture?: string;
-  /** "salt:hash" (hex, scrypt). Absent for Google-only accounts. */
-  passwordHash?: string;
-  googleId?: string;
-  createdAt: number;
+export interface Preferences {
+  services: ServiceId[];
+  genres: Genre[];
+  onboarded: boolean;
 }
 
-const { mutate } = jsonStore<Record<string, StoredUser>>("users.json", () => ({}));
-const scryptAsync = promisify(scrypt) as (pw: string, salt: Buffer, len: number) => Promise<Buffer>;
+const EMPTY_PREFS: Preferences = { services: [], genres: [], onboarded: false };
+const DB_TIMEOUT_MS = 5000;
+const SERVICE_IDS = new Set<string>(STREAMING_SERVICES.map((s) => s.id));
+const GENRE_IDS = new Set<string>(GENRES);
 
-async function hashPassword(password: string) {
-  const salt = randomBytes(16);
-  const hash = await scryptAsync(password, salt, 64);
-  return `${salt.toString("hex")}:${hash.toString("hex")}`;
+const users = () => firestore().collection("users");
+
+/** After a failure, skip the database this long instead of making every page wait on the timeout. */
+const BACKOFF_MS = 30_000;
+let downUntil = 0;
+
+/** A slow or unreachable database shouldn't hang sign-in (or every page load). */
+async function withTimeout<T>(promise: Promise<T>): Promise<T> {
+  if (Date.now() < downUntil) throw new Error("Firestore unavailable (backing off)");
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Firestore timed out")), DB_TIMEOUT_MS)),
+    ]);
+  } catch (err) {
+    downUntil = Date.now() + BACKOFF_MS;
+    throw err;
+  }
 }
 
-async function checkPassword(password: string, stored: string) {
-  const [salt, hash] = stored.split(":");
-  if (!salt || !hash) return false;
-  const expected = Buffer.from(hash, "hex");
-  const actual = await scryptAsync(password, Buffer.from(salt, "hex"), expected.length);
-  return timingSafeEqual(actual, expected);
-}
-
-const toUser = (u: StoredUser, provider: User["provider"]): User => ({
-  name: u.name,
-  email: u.email,
-  provider,
-  ...(u.picture ? { picture: u.picture } : {}),
-});
-
-/** "maya.k@x.com" → "Maya K" — display name until the user sets one. */
+/** "maya.k@x.com" → "Maya K" — display name for email sign-ups. */
 const nameFromEmail = (email: string) =>
   email
     .split("@")[0]
@@ -55,45 +56,80 @@ const nameFromEmail = (email: string) =>
     .map((p) => p[0].toUpperCase() + p.slice(1))
     .join(" ") || "Guest";
 
-export type EmailAuthResult =
-  | { ok: true; user: User; created: boolean }
-  | { ok: false; error: string; status: number };
-
-/** Sign in with email + password, creating the account on first use. */
-export function signInOrRegister(emailRaw: string, password: string): Promise<EmailAuthResult> {
-  const email = emailRaw.trim().toLowerCase();
-  return mutate(async (users) => {
-    const existing = users[email];
-    if (!existing) {
-      const created: StoredUser = { email, name: nameFromEmail(email), passwordHash: await hashPassword(password), createdAt: Date.now() };
-      users[email] = created;
-      return { ok: true, user: toUser(created, "email"), created: true };
-    }
-    if (!existing.passwordHash) {
-      return { ok: false, status: 409, error: "This email is linked to Google — use “Continue with Google”." };
-    }
-    if (!(await checkPassword(password, existing.passwordHash))) {
-      return { ok: false, status: 401, error: "Incorrect password for this email." };
-    }
-    return { ok: true, user: toUser(existing, "email"), created: false };
-  });
+/** The app's view of a verified Firebase user. */
+export function userFromToken(token: DecodedIdToken): User | null {
+  if (!token.email) return null;
+  const email = token.email.toLowerCase();
+  const name = typeof token.name === "string" && token.name.trim() ? token.name.trim().slice(0, 64) : nameFromEmail(email);
+  return {
+    id: token.uid,
+    name,
+    email,
+    provider: token.firebase.sign_in_provider === "google.com" ? "google" : "email",
+    ...(typeof token.picture === "string" ? { picture: token.picture } : {}),
+  };
 }
 
-/** Create or refresh an account from a verified Google profile. */
-export function upsertGoogleUser(profile: { sub: string; email: string; name?: string; picture?: string }): Promise<User> {
-  const email = profile.email.trim().toLowerCase();
-  return mutate((users) => {
-    const prev = users[email];
-    const next: StoredUser = {
-      ...prev,
-      email,
-      // Google is the source of truth for name + photo on Google sign-in
-      name: profile.name?.trim() || prev?.name || nameFromEmail(email),
-      picture: profile.picture ?? prev?.picture,
-      googleId: profile.sub,
-      createdAt: prev?.createdAt ?? Date.now(),
-    };
-    users[email] = next;
-    return toUser(next, "google");
-  });
+/** Validate preferences from a client (unknown services / genres are dropped). */
+export function cleanPreferences(input: unknown): Preferences | null {
+  if (!input || typeof input !== "object") return null;
+  const { services, genres, onboarded } = input as Record<string, unknown>;
+  if (!Array.isArray(services) || !Array.isArray(genres)) return null;
+  return {
+    services: [...new Set(services.filter((s): s is ServiceId => typeof s === "string" && SERVICE_IDS.has(s)))],
+    genres: [...new Set(genres.filter((g): g is Genre => typeof g === "string" && GENRE_IDS.has(g)))],
+    onboarded: onboarded === true,
+  };
+}
+
+const prefsFrom = (data: FirebaseFirestore.DocumentData | undefined): Preferences =>
+  cleanPreferences({ services: data?.services ?? [], genres: data?.genres ?? [], onboarded: data?.onboarded ?? false }) ?? EMPTY_PREFS;
+
+/**
+ * Create or refresh the user's document on sign-in. Returns their saved
+ * preferences, or null if the database couldn't be reached (sign-in still works).
+ */
+export async function recordSignIn(user: User): Promise<Preferences | null> {
+  try {
+    const ref = users().doc(user.id);
+    const snap = await withTimeout(ref.get());
+    await withTimeout(
+      ref.set(
+        {
+          name: user.name,
+          email: user.email,
+          picture: user.picture ?? null,
+          provider: user.provider,
+          lastLoginAt: FieldValue.serverTimestamp(),
+          ...(snap.exists ? {} : { ...EMPTY_PREFS, createdAt: FieldValue.serverTimestamp() }),
+        },
+        { merge: true },
+      ),
+    );
+    return snap.exists ? prefsFrom(snap.data()) : EMPTY_PREFS;
+  } catch (err) {
+    console.error("[db] couldn't record sign-in:", err);
+    return null;
+  }
+}
+
+/** Saved preferences, or null if the database couldn't be reached. */
+export async function getPreferences(uid: string): Promise<Preferences | null> {
+  try {
+    const snap = await withTimeout(users().doc(uid).get());
+    return prefsFrom(snap.data());
+  } catch (err) {
+    console.error("[db] couldn't read preferences:", err);
+    return null;
+  }
+}
+
+export async function savePreferences(uid: string, prefs: Preferences): Promise<boolean> {
+  try {
+    await withTimeout(users().doc(uid).set({ ...prefs, updatedAt: FieldValue.serverTimestamp() }, { merge: true }));
+    return true;
+  } catch (err) {
+    console.error("[db] couldn't save preferences:", err);
+    return false;
+  }
 }

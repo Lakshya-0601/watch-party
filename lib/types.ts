@@ -77,6 +77,8 @@ export interface Title {
 }
 
 export interface User {
+  /** Firebase Auth uid */
+  id: string;
   name: string;
   email: string;
   provider: "google" | "email";

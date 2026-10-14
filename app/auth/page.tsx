@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import type { Metadata } from "next";
 import { AuthForm } from "@/components/auth/AuthForm";
 import { CinematicBackdrop } from "@/components/ui/CinematicBackdrop";
@@ -29,10 +28,7 @@ export default function AuthPage() {
               </p>
             </div>
 
-            {/* AuthForm reads ?error= from the URL, which is only known at request time */}
-            <Suspense>
-              <AuthForm />
-            </Suspense>
+            <AuthForm />
 
             <p className="mt-6 text-center text-xs text-muted">
               New here? Signing in creates your account automatically.

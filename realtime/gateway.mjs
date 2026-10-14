@@ -35,6 +35,16 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { WebSocketServer } from "ws";
 
+// Share the Next app's settings (REELROOM_TOKEN_SECRET must match it). Values
+// already in the environment win; missing files are fine.
+for (const file of [".env.local", ".env"]) {
+  try {
+    process.loadEnvFile(new URL(`../${file}`, import.meta.url));
+  } catch {
+    /* not there */
+  }
+}
+
 const PORT = Number(process.env.REALTIME_PORT ?? 3108);
 const APP_URL = (process.env.APP_URL ?? "http://localhost:3107").replace(/\/$/, "");
 const SECRET = process.env.REELROOM_TOKEN_SECRET ?? "reelroom-dev-secret-change-me";

@@ -6,8 +6,10 @@
  * A tiny external store holds the signed-in user and their onboarding
  * preferences, mirrored to localStorage so a refresh paints instantly (and
  * other tabs stay in sync). The session itself lives in an httpOnly cookie:
- * on first use the store asks /api/auth/session who is signed in and
- * reconciles before reporting `hydrated`. Components read it with `useAppState()`.
+ * on first use the store asks /api/auth/session who is signed in — and for
+ * their preferences saved in Firestore — and reconciles before reporting
+ * `hydrated`. Preference changes are saved back via /api/me/preferences.
+ * Components read it with `useAppState()`.
  */
 
 import { useSyncExternalStore } from "react";
@@ -74,21 +76,52 @@ function update(updater: (s: PersistedState) => PersistedState) {
   listeners.forEach((l) => l());
 }
 
-/** A different account starts with fresh preferences. */
-const withUser = (s: PersistedState, user: User): PersistedState =>
-  s.user?.email === user.email ? { ...s, user } : { ...EMPTY, user };
+export interface Preferences {
+  services: ServiceId[];
+  genres: Genre[];
+  onboarded: boolean;
+}
+
+/**
+ * Apply the signed-in user. Saved preferences from the database win; if the
+ * database was unreachable (null), keep what this device has for the same account.
+ */
+function withUser(s: PersistedState, user: User, prefs: Preferences | null): PersistedState {
+  if (prefs) return { user, ...prefs };
+  return s.user?.id === user.id ? { ...s, user } : { ...EMPTY, user };
+}
+
+/* ------------------------------------------------- save to the database -- */
+
+let saveTimer: ReturnType<typeof setTimeout> | undefined;
+
+/** Debounced: rapid toggles in the profile hub become one write. */
+function persistPreferences() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    const { user, services, genres, onboarded } = getSnapshot();
+    if (!user) return;
+    fetch("/api/me/preferences", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ services, genres, onboarded }),
+    }).catch(() => {
+      /* offline: kept on this device, saved next time something changes */
+    });
+  }, 400);
+}
 
 /** Ask the server who is signed in — the cookie is the source of truth. */
 async function syncSession() {
-  let user: User | null | undefined;
+  let session: { user: User | null; prefs: Preferences | null } | undefined;
   try {
     const res = await fetch("/api/auth/session", { cache: "no-store" });
-    if (res.ok) user = ((await res.json()) as { user: User | null }).user;
+    if (res.ok) session = (await res.json()) as { user: User | null; prefs: Preferences | null };
   } catch {
     // Offline: keep the cached user so the app still opens
   }
   sessionChecked = true;
-  update((s) => (user === undefined ? { ...s } : user ? withUser(s, user) : EMPTY));
+  update((s) => (!session ? { ...s } : session.user ? withUser(s, session.user, session.prefs) : EMPTY));
 }
 
 /* -------------------------------- actions ------------------------------- */
@@ -99,23 +132,30 @@ export function toggle<T>(list: T[], value: T): T[] {
 }
 
 const actions = {
-  /** Record the user after the server has set the session cookie. */
-  signIn: (user: User) => {
+  /** Record the user (and their saved preferences) after the server set the session cookie. */
+  signIn: (user: User, prefs: Preferences | null) => {
     sessionChecked = true;
-    update((s) => withUser(s, user));
+    update((s) => withUser(s, user, prefs));
   },
   signOut: async () => {
+    clearTimeout(saveTimer);
     await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
     update(() => EMPTY);
   },
   /** Onboarding: commit both preference lists at once. */
-  savePreferences: ({ services, genres }: { services: ServiceId[]; genres: Genre[] }) =>
-    update((s) => ({ ...s, services, genres, onboarded: true })),
+  savePreferences: ({ services, genres }: { services: ServiceId[]; genres: Genre[] }) => {
+    update((s) => ({ ...s, services, genres, onboarded: true }));
+    persistPreferences();
+  },
   /** Profile hub: toggle a single service or genre in place. */
-  toggleService: (id: ServiceId) =>
-    update((s) => ({ ...s, services: toggle(s.services, id) })),
-  toggleGenre: (genre: Genre) =>
-    update((s) => ({ ...s, genres: toggle(s.genres, genre) })),
+  toggleService: (id: ServiceId) => {
+    update((s) => ({ ...s, services: toggle(s.services, id) }));
+    persistPreferences();
+  },
+  toggleGenre: (genre: Genre) => {
+    update((s) => ({ ...s, genres: toggle(s.genres, genre) }));
+    persistPreferences();
+  },
 };
 
 /**

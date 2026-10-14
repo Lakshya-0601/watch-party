@@ -1,9 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Lets server code find project files (extension/, .data/) even when
-  // `next dev` is started from another folder — see lib/server/paths.ts
-  env: { REELROOM_PROJECT_DIR: __dirname },
   // The flow starts at sign-in
   redirects() {
     return [{ source: "/", destination: "/auth", permanent: false }];

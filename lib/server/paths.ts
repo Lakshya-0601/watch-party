@@ -1,14 +1,13 @@
 import "server-only";
-import { existsSync } from "node:fs";
 import path from "node:path";
 
 /**
- * The app's own folder. Usually `process.cwd()`, but `next dev <dir>` run
- * from a parent folder leaves cwd pointing elsewhere, so prefer the folder
- * next.config.ts lives in (inlined at build time) when it still exists.
+ * The app's own folder. `npm run dev` / `npm start` run from it, so that's
+ * process.cwd(); REELROOM_PROJECT_DIR overrides it for unusual launchers.
+ *
+ * (Not inlined via next.config `env`: a compile-time path there made dev
+ * builds disagree with the server and reload the page in a loop.)
  */
-const fromConfig = process.env.REELROOM_PROJECT_DIR;
-export const PROJECT_DIR =
-  fromConfig && existsSync(path.join(fromConfig, "package.json")) ? fromConfig : process.cwd();
+export const PROJECT_DIR = process.env.REELROOM_PROJECT_DIR || process.cwd();
 
 export const projectPath = (...segments: string[]) => path.join(PROJECT_DIR, ...segments);

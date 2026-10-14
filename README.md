@@ -28,23 +28,37 @@ npm run dev
 
 Starts the app on http://localhost:3107 **and** the realtime gateway on ws://localhost:3108 that the browser extension uses for watch parties (it's restarted automatically if it exits). `npm run dev:next` starts the app alone.
 
-## Sign-in setup
+## Firebase setup (sign-in + database)
 
-Email + password works out of the box: accounts are stored (scrypt-hashed) in `.data/users.json`, which is git-ignored. Swap `lib/auth/users.ts` for a real database before deploying.
+Accounts use **Firebase Authentication** (email/password and Google) and each user's profile and preferences live in **Firestore** at `users/{uid}`. The browser signs in with Firebase, then trades the ID token for ReelRoom's own session cookie (30 days with "Remember me").
 
-**Google sign-in** needs an OAuth client:
+1. [Firebase console](https://console.firebase.google.com/) → **Add project**.
+2. **Authentication → Sign-in method**: enable **Email/Password** and **Google**. (`localhost` is an authorised domain by default; add your production domain later.)
+3. **Firestore Database → Create database** (production mode), then paste `firestore.rules` into the **Rules** tab and publish — only the server touches Firestore.
+4. **Project settings → Your apps → Web app (`</>`)**: register an app and copy its config.
+5. **Project settings → Service accounts → Generate new private key**: download the JSON (keep it private, never commit it).
+6. Put both in `.env.local` and restart `npm run dev`:
 
-1. [Google Cloud Console](https://console.cloud.google.com/apis/credentials) → _Create credentials_ → _OAuth client ID_ → _Web application_.
-2. Add `http://localhost:3107/api/auth/google/callback` under _Authorised redirect URIs_ (plus your production origin later).
-3. Create `.env.local`:
+```bash
+# Web app config (step 4) — not secret
+NEXT_PUBLIC_FIREBASE_API_KEY=…
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project
+NEXT_PUBLIC_FIREBASE_APP_ID=1:…:web:…
 
-```
+# Service account (step 5) — secret
+FIREBASE_PROJECT_ID=your-project
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-…@your-project.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----
+…
+-----END PRIVATE KEY-----
+"
+
 REELROOM_SESSION_SECRET=any-long-random-string   # required in production
-# APP_URL=https://your-domain.com                 # only if behind a proxy
 # NEXT_PUBLIC_EXTENSION_STORE_URL=https://chromewebstore.google.com/detail/…   # once published
 ```
 
-Restart `npm run dev`. The user's Google name and profile photo appear in the nav and profile drawer.
+**Local testing without a project:** run the Auth emulator (`npx firebase-tools emulators:start --only auth`) and set `NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_URL=http://127.0.0.1:9099`, `FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099` and a `demo-…` project id. If Firestore is unreachable, sign-in still works and preferences stay on the device.
 
 ## Learn More
 

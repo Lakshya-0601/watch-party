@@ -11,6 +11,7 @@
  * Run:   node extension/test/e2e.test.mjs
  * Other targets: E2E_APP_URL=http://localhost:4000 E2E_WS_URL=ws://localhost:4001 node extension/test/e2e.test.mjs
  */
+import { createHmac } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import vm from "node:vm";
@@ -159,14 +160,14 @@ function openTab(browser) {
   return tab;
 }
 
-// Sign in (or register) through the web app, then mint the token from that session cookie.
-// The display name comes from the email ("maya@…" → "Maya").
-const token = async (_name, email) => {
-  const post = (path, init) =>
-    fetch(`${APP}${path}`, { method: "POST", headers: { "Content-Type": "application/json" }, signal: AbortSignal.timeout(10_000), ...init });
-  const login = await post("/api/auth/email", { body: JSON.stringify({ email, password: "e2e-password" }) });
-  const cookie = login.headers.getSetCookie().map((c) => c.split(";")[0]).join("; ");
-  return (await (await post("/api/extension/token", { headers: { Cookie: cookie } })).json()).token;
+// The extension token the web app would hand over after sign-in (same format and
+// secret as lib/auth/extension-token.ts, which the gateway verifies) — minted here so
+// the test doesn't depend on Firebase sign-in.
+const TOKEN_SECRET = process.env.REELROOM_TOKEN_SECRET ?? "reelroom-dev-secret-change-me";
+const token = async (name, email) => {
+  const now = Date.now();
+  const body = Buffer.from(JSON.stringify({ v: 1, sub: email, name, iat: now, exp: now + 3600_000 })).toString("base64url");
+  return `${body}.${createHmac("sha256", TOKEN_SECRET).update(body).digest("base64url")}`;
 };
 
 /* --------------------------------------------------------------- run -- */

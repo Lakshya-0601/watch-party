@@ -9,7 +9,10 @@ import type { User } from "@/lib/types";
  */
 
 export const SESSION_COOKIE = "reelroom_session";
-const SESSION_TTL_S = 30 * 24 * 60 * 60;
+/** "Remember me": stay signed in this long, across browser restarts. */
+const REMEMBER_TTL_S = 30 * 24 * 60 * 60;
+/** Not remembered: the cookie dies with the browser, and the token after this at the latest. */
+const SHORT_TTL_S = 12 * 60 * 60;
 const DEV_SECRET = "reelroom-dev-session-secret-change-me";
 
 interface SessionPayload {
@@ -28,8 +31,8 @@ function secret() {
 
 const sign = (body: string) => createHmac("sha256", secret()).update(body).digest();
 
-function encode(user: User, now = Date.now()) {
-  const payload: SessionPayload = { v: 1, user, exp: now + SESSION_TTL_S * 1000 };
+function encode(user: User, ttlS: number, now = Date.now()) {
+  const payload: SessionPayload = { v: 1, user, exp: now + ttlS * 1000 };
   const body = Buffer.from(JSON.stringify(payload)).toString("base64url");
   return `${body}.${sign(body).toString("base64url")}`;
 }
@@ -42,7 +45,8 @@ function decode(token: string | undefined, now = Date.now()): User | null {
   if (given.length !== expected.length || !timingSafeEqual(given, expected)) return null;
   try {
     const payload = JSON.parse(Buffer.from(body, "base64url").toString("utf8")) as SessionPayload;
-    return payload.v === 1 && payload.exp > now ? payload.user : null;
+    // Sessions from before Firebase Auth carry no user id: sign in again
+    return payload.v === 1 && payload.exp > now && typeof payload.user?.id === "string" ? payload.user : null;
   } catch {
     return null;
   }
@@ -50,13 +54,17 @@ function decode(token: string | undefined, now = Date.now()): User | null {
 
 export const getSessionUser = (req: NextRequest) => decode(req.cookies.get(SESSION_COOKIE)?.value);
 
-export function setSessionCookie(res: NextResponse, user: User) {
-  res.cookies.set(SESSION_COOKIE, encode(user), {
+/**
+ * Sign the user in. `remember` keeps the cookie for 30 days; otherwise it's
+ * a browser-session cookie (no maxAge), gone when the browser closes.
+ */
+export function setSessionCookie(res: NextResponse, user: User, remember = true) {
+  res.cookies.set(SESSION_COOKIE, encode(user, remember ? REMEMBER_TTL_S : SHORT_TTL_S), {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: SESSION_TTL_S,
+    ...(remember ? { maxAge: REMEMBER_TTL_S } : {}),
   });
   return res;
 }
