@@ -1,0 +1,64 @@
+<!doctype html>
+<!--
+  Dev-only preview of popup/popup.html with a mocked chrome.* API.
+  ?state=lobby | room | signedout   (not part of the shipped extension)
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Popup preview</title>
+    <link rel="stylesheet" href="../popup/popup.css" />
+    <style>html { background: #222; } body { margin: 24px auto; box-shadow: 0 20px 60px rgba(0,0,0,.6); border-radius: 12px; overflow: hidden; }</style>
+  </head>
+  <body>
+    <script>
+      // Build the popup's markup from the real popup.html
+      const markup = await_markup();
+      function await_markup() {
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", "../popup/popup.html", false);
+        xhr.send();
+        return new DOMParser().parseFromString(xhr.responseText, "text/html").querySelector("main").outerHTML;
+      }
+      document.body.insertAdjacentHTML("afterbegin", markup);
+
+      const mode = new URLSearchParams(location.search).get("state") ?? "room";
+      const now = Date.now();
+      const room = {
+        code: "nfx-711-wch", titleId: null, hostName: "Maya K", serverTime: now, ended: false, admittedCount: 4, capacity: 10,
+        media: { provider: "netflix", url: "https://www.netflix.com/watch/80057281", title: "Stranger Things" },
+        me: { id: "ext-me", status: "admitted", isHost: false, control: "granted" },
+        members: [
+          { id: "ext-host", name: "Maya K", status: "admitted", isHost: true, control: "granted", online: true, since: now },
+          { id: "ext-me", name: "Kai", status: "admitted", isHost: false, control: "granted", online: true, since: now },
+          { id: "ext-noor", name: "Noor", status: "admitted", isHost: false, control: "none", online: true, since: now },
+          { id: "ext-leo", name: "Leo", status: "admitted", isHost: false, control: "none", online: false, since: now },
+        ],
+      };
+      const state = {
+        user: mode === "signedout" ? null : { name: "Kai", email: "kai@example.com" },
+        connection: mode === "signedout" ? "unauthorized" : "open",
+        code: mode === "room" ? room.code : null,
+        view: mode === "room" ? room : null,
+        roomError: null, clockOffset: 0,
+      };
+      // Minimal chrome.* mock: a port that immediately delivers state
+      window.chrome = {
+        runtime: {
+          connect: () => ({
+            onMessage: { addListener: (f) => setTimeout(() => f({ type: "state", state }), 0) },
+            postMessage: (m) => console.log("→ background", m),
+          }),
+        },
+        tabs: {
+          query: async () => [{ id: 7 }],
+          sendMessage: async () => ({ provider: "netflix", providerName: "Netflix", url: "https://www.netflix.com/watch/80057281", title: "Stranger Things", isWatchPage: true, hasVideo: true }),
+          create: (o) => console.log("open tab", o.url),
+        },
+      };
+    </script>
+    <script src="../shared/config.js"></script>
+    <script src="../shared/protocol.js"></script>
+    <script src="../popup/popup.js"></script>
+  </body>
+</html>

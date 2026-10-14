@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>ReelRoom</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main class="popup">
+      <header class="head">
+        <div class="brand">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10" /><path d="M10 8.5v7l6-3.5-6-3.5Z" fill="currentColor" />
+          </svg>
+          <span>REEL<b>ROOM</b></span>
+        </div>
+        <span id="conn" class="conn" role="status">Disconnected</span>
+      </header>
+
+      <!-- Signed out -->
+      <section id="signed-out" class="card" hidden>
+        <h1>Sign in to watch together</h1>
+        <p class="muted">The extension uses your ReelRoom account. Sign in on the web app and come back — it links automatically.</p>
+        <button id="sign-in" class="btn primary wide">Open ReelRoom</button>
+      </section>
+
+      <!-- Signed in, not in a room -->
+      <section id="lobby" hidden>
+        <p class="muted small">Signed in as <strong id="user-name"></strong></p>
+
+        <div id="start-card" class="card">
+          <h2 id="start-title">Start a party on this tab</h2>
+          <p id="start-sub" class="muted small"></p>
+          <button id="start" class="btn primary wide">Start watch party</button>
+        </div>
+
+        <div class="divider"><span>or join one</span></div>
+
+        <form id="join-form" class="join" novalidate>
+          <label for="code" class="label">Room code or invite link</label>
+          <input id="code" autocomplete="off" spellcheck="false" placeholder="abc-234-xyz" />
+          <p id="join-error" class="error" role="alert" hidden></p>
+          <button class="btn wide" type="submit">Connect to Room</button>
+        </form>
+      </section>
+
+      <!-- In a room -->
+      <section id="room" hidden>
+        <div class="card room-card">
+          <div class="row">
+            <div>
+              <p class="label">Room</p>
+              <p id="room-code" class="code"></p>
+            </div>
+            <button id="copy-link" class="btn small">Copy invite</button>
+          </div>
+          <p id="room-status" class="status"></p>
+          <p id="room-media" class="muted small"></p>
+          <p id="room-error" class="error" hidden></p>
+        </div>
+
+        <div id="reactions" class="reactions" role="group" aria-label="Send a reaction"></div>
+
+        <h3 class="label">People <span id="people-count"></span></h3>
+        <ul id="people" class="people"></ul>
+
+        <div class="actions">
+          <button id="open-overlay" class="btn">Open chat on page</button>
+          <button id="leave" class="btn danger">Leave</button>
+        </div>
+      </section>
+    </main>
+    <script src="../shared/config.js"></script>
+    <script src="../shared/protocol.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

@@ -1,0 +1,87 @@
+<!doctype html>
+<!--
+  Dev-only preview of the injected overlay (content/overlay.js) with mock room
+  state — open this file in a browser to iterate on the in-page UI without a
+  streaming account. Not part of the shipped extension (not in the manifest).
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Overlay preview</title>
+    <style>
+      html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+      /* A stand-in for the streaming player */
+      .player { position: fixed; inset: 0; display: grid; place-items: center;
+        background: radial-gradient(60% 60% at 40% 40%, #2b3a55, #05060a 70%); }
+      .player h1 { font: 800 56px/1 system-ui, sans-serif; color: rgba(255,255,255,.18); letter-spacing: .04em; }
+      .controls { position: fixed; left: 0; right: 0; bottom: 0; height: 72px;
+        background: linear-gradient(transparent, rgba(0,0,0,.8)); }
+      .bar { position: absolute; left: 24px; right: 24px; bottom: 40px; height: 4px; background: rgba(255,255,255,.25); }
+      .bar::after { content: ""; position: absolute; inset: 0 62% 0 0; background: #e50914; }
+    </style>
+  </head>
+  <body>
+    <div class="player"><h1>STRANGER THINGS</h1></div>
+    <div class="controls"><div class="bar"></div></div>
+
+    <script src="../shared/config.js"></script>
+    <script src="../shared/protocol.js"></script>
+    <script src="../content/keyguard.js"></script>
+    <script src="../content/overlay-styles.js"></script>
+    <script src="../content/overlay.js"></script>
+    <script>
+      const now = Date.now();
+      const me = { id: "ext-me", name: "Kai" };
+      const members = [
+        { id: "ext-host", name: "Maya K", status: "admitted", isHost: true, control: "granted", online: true, since: now - 900e3, muted: false },
+        { id: me.id, name: me.name, status: "admitted", isHost: false, control: "none", online: true, since: now - 600e3, muted: false },
+        { id: "ext-noor", name: "Noor", status: "admitted", isHost: false, control: "granted", online: true, since: now - 500e3, muted: false },
+        { id: "ext-leo", name: "Leo", status: "admitted", isHost: false, control: "none", online: false, since: now - 300e3, muted: false },
+      ];
+      const chat = [
+        { id: "s1", kind: "system", authorId: null, authorName: null, text: "Maya K opened the watch party", at: now - 900e3 },
+        { id: "s2", kind: "system", authorId: null, authorName: null, text: "Kai joined the party", at: now - 600e3 },
+        { id: "m1", kind: "text", authorId: "ext-host", authorName: "Maya K", text: "Okay everyone ready? 🍿", at: now - 400e3 },
+        { id: "m2", kind: "text", authorId: me.id, authorName: me.name, text: "Born ready", at: now - 380e3 },
+        { id: "m3", kind: "text", authorId: "ext-noor", authorName: "Noor", text: "the synth in this intro 😭🔥", at: now - 120e3 },
+      ];
+      const view = (patch = {}) => ({
+        code: "nfx-711-wch", titleId: null, hostName: "Maya K", serverTime: Date.now(), ended: false,
+        admittedCount: 4, capacity: 15, chatMuted: false,
+        media: { provider: "netflix", url: "https://www.netflix.com/watch/80057281", title: "Stranger Things" },
+        me: { id: me.id, status: "admitted", isHost: false, control: "none", muted: false, chatReadyAt: 0 },
+        members, chat, reactions: [],
+        playback: { playing: true, position: 1234, rate: 1, updatedAt: Date.now(), byName: "Maya K" },
+        ...patch,
+      });
+      const state = (v) => ({ user: { name: "Kai" }, connection: "open", code: "nfx-711-wch", view: v, roomError: null, clockOffset: 0 });
+      const ctx = { providerName: "Netflix", onWatchPage: true, mediaMatches: true, hasVideo: true, autoplayBlocked: false };
+
+      const overlay = new ReelRoom.Overlay({
+        onAction: async (a) => (console.log("action", a), { ok: true }),
+        onCreateParty: async () => ({ ok: true }),
+        onLeave: (end) => console.log("leave", end),
+        onOpenMedia: (url) => console.log("open", url),
+        onResumeSync: () => console.log("resume"),
+      });
+      let v = view();
+      overlay.update(state(v), ctx);
+      overlay.open();
+      window.__preview = { overlay, view, state, ctx, members, chat };
+
+      // Live-ish activity: a message from someone else, reactions, a playback change
+      setTimeout(() => {
+        const next = view({
+          chat: [...chat, { id: "m4", kind: "text", authorId: "ext-host", authorName: "Maya K", text: "WAIT what just happened", at: Date.now() }],
+          reactions: [
+            { id: "r1", emoji: "😱", byName: "Maya K", at: Date.now() },
+            { id: "r2", emoji: "🔥", byName: "Noor", at: Date.now() },
+          ],
+          playback: { playing: false, position: 1301, rate: 1, updatedAt: Date.now(), byName: "Noor" },
+        });
+        overlay.update(state(next), ctx);
+      }, 700);
+    </script>
+  </body>
+</html>
