@@ -1,7 +1,6 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { crc32, deflateRawSync } from "node:zlib";
-import { projectPath } from "@/lib/server/paths";
 
 /**
  * GET /api/extension/download → reelroom-extension.zip
@@ -11,16 +10,17 @@ import { projectPath } from "@/lib/server/paths";
  * Developer mode → Load unpacked. Dev-only folders are left out.
  */
 
-const ROOT = projectPath("extension");
+/** A file (or folder) inside extension/ — spelled out so the build only traces that folder. */
+const inExtension = (rel: string) => path.join(process.cwd(), "extension", rel);
 const SKIP = new Set(["test", "dev", "scripts", "README.md"]);
 
-async function listFiles(dir: string, prefix = ""): Promise<string[]> {
-  const entries = await readdir(dir, { withFileTypes: true });
+async function listFiles(prefix = ""): Promise<string[]> {
+  const entries = await readdir(inExtension(prefix), { withFileTypes: true });
   const out: string[] = [];
   for (const e of entries.sort((a, b) => a.name.localeCompare(b.name))) {
     if (!prefix && SKIP.has(e.name)) continue;
     const rel = prefix ? `${prefix}/${e.name}` : e.name;
-    if (e.isDirectory()) out.push(...(await listFiles(path.join(dir, e.name), rel)));
+    if (e.isDirectory()) out.push(...(await listFiles(rel)));
     else if (e.isFile()) out.push(rel);
   }
   return out;
@@ -84,12 +84,12 @@ function zip(files: { name: string; data: Buffer }[]) {
 export async function GET() {
   let names: string[];
   try {
-    names = await listFiles(ROOT);
+    names = await listFiles();
   } catch (err) {
-    console.error("[extension] can't read", ROOT, err);
+    console.error("[extension] can't read", inExtension(""), err);
     return new Response("The extension files are missing on this server.", { status: 500 });
   }
-  const files = await Promise.all(names.map(async (name) => ({ name, data: await readFile(path.join(ROOT, name)) })));
+  const files = await Promise.all(names.map(async (name) => ({ name, data: await readFile(inExtension(name)) })));
   return new Response(new Uint8Array(zip(files)), {
     headers: {
       "Content-Type": "application/zip",
