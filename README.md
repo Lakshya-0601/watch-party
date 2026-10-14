@@ -69,8 +69,13 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
+## Deploy (Render)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Watch parties need an always-on server: rooms live in memory and the browser extension keeps a WebSocket open. Serverless hosts like Vercel can run the website but **not** parties, so the whole app is deployed as one Node service on Render:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. [Render](https://dashboard.render.com/) → **New → Blueprint** → connect this GitHub repo. It reads `render.yaml`.
+2. Fill in the Firebase values it asks for (same as `.env.local`). `REELROOM_SESSION_SECRET` / `REELROOM_TOKEN_SECRET` are generated for you.
+3. When it's live (e.g. `https://reelroom.onrender.com`), add that domain in Firebase → **Authentication → Settings → Authorized domains**.
+4. Install the extension **from the deployed site** ("Download the extension"): that copy is configured for it — invite links point at the site and live sync uses `wss://…/realtime`.
+
+`npm start` runs `server.mjs`: Next.js plus the realtime gateway on one port. Render's free plan sleeps after ~15 minutes idle (the first visit then takes about a minute) and rooms reset when the service restarts.

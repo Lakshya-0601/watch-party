@@ -553,16 +553,32 @@
       if (!res.ok) this.toast({ title: "Couldn't change the chat", body: res.error, tone: "bad" });
     }
 
+    /** Copy text, falling back to a hidden textarea when the site blocks the async Clipboard API. */
+    async copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch {
+        const area = h("textarea", { value: text, readOnly: true, style: "position:fixed;opacity:0;pointer-events:none" });
+        this.rootEl.append(area);
+        area.select();
+        let ok = false;
+        try {
+          ok = document.execCommand("copy");
+        } catch {
+          /* still blocked */
+        }
+        area.remove();
+        return ok;
+      }
+    }
+
     async copyInvite() {
       const v = this.state?.view;
       if (!v) return;
       const chip = this.els.codeChip;
-      try {
-        await navigator.clipboard.writeText(P.roomUrl(v.code));
-        chip.textContent = "Invite link copied ✓";
-      } catch {
-        chip.textContent = `Room ${v.code}`; // clipboard blocked: the code is still readable
-      }
+      // Clipboard blocked entirely: the code stays readable on the chip
+      chip.textContent = (await this.copyText(P.roomUrl(v.code))) ? "Invite link copied ✓" : `Room ${v.code}`;
       chip.dataset.copied = "1";
       setTimeout(() => {
         delete chip.dataset.copied;

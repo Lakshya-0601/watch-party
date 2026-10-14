@@ -1,9 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Check, CircleCheck, Copy, Download, LoaderCircle, Puzzle, RefreshCw } from "lucide-react";
+import { ArrowUpCircle, Check, CircleCheck, Copy, Download, LoaderCircle, Puzzle, RefreshCw } from "lucide-react";
 import { copyText } from "@/lib/clipboard";
-import { EXTENSION_DOWNLOAD_URL, EXTENSION_STORE_URL, useExtensionStatus } from "@/lib/extension";
+import {
+  EXTENSION_DOWNLOAD_URL,
+  EXTENSION_STORE_URL,
+  LATEST_EXTENSION_VERSION,
+  isExtensionOutdated,
+  useExtensionStatus,
+} from "@/lib/extension";
 import { cn } from "@/lib/cn";
 
 /** "Installed ✓ / Not installed / Checking…" pill with a re-check button. */
@@ -128,5 +134,44 @@ export function InstallSteps({ compact = false }: { compact?: boolean }) {
         </li>
       ))}
     </ol>
+  );
+}
+
+/**
+ * Shown when the installed extension is older than the one this site ships,
+ * so new party features (chat controls, invite chip…) don't silently go missing.
+ */
+export function ExtensionUpdateNotice({ className }: { className?: string }) {
+  const { status } = useExtensionStatus();
+  if (!isExtensionOutdated(status) || status.state !== "installed") return null;
+  return (
+    <div
+      role="status"
+      className={cn(
+        "flex flex-col gap-3 rounded-2xl bg-amber-300/10 px-4 py-3 ring-1 ring-amber-300/30 sm:flex-row sm:items-center",
+        className,
+      )}
+    >
+      <ArrowUpCircle className="size-5 shrink-0 text-amber-300" aria-hidden />
+      <div className="min-w-0 flex-1 text-sm">
+        <p className="font-semibold text-amber-100">
+          ReelRoom extension update available — v{LATEST_EXTENSION_VERSION} (you have v{status.version})
+        </p>
+        <p className="text-xs text-amber-100/70">
+          {EXTENSION_STORE_URL
+            ? "Chrome updates it automatically; restart Chrome if it hasn't yet."
+            : "Unzip it over your old folder, click ⟳ on ReelRoom in chrome://extensions, then refresh your streaming tab."}
+        </p>
+      </div>
+      {!EXTENSION_STORE_URL && (
+        <a
+          href={EXTENSION_DOWNLOAD_URL}
+          download
+          className="inline-flex h-9 shrink-0 items-center gap-1.5 self-start rounded-lg bg-white px-3 text-sm font-semibold text-ink transition hover:bg-white/90 sm:self-center"
+        >
+          <Download className="size-4" /> Download update
+        </a>
+      )}
+    </div>
   );
 }
