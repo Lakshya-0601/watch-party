@@ -1,8 +1,8 @@
 "use client";
 
 import { MessageCircle, Play, ShieldCheck } from "lucide-react";
-import { ExtensionStatusBadge, InstallSteps } from "@/components/extension/ExtensionInstall";
-import { useExtensionStatus } from "@/lib/extension";
+import { ExtensionStatusBadge, ExtensionUpdateNotice, InstallSteps } from "@/components/extension/ExtensionInstall";
+import { isExtensionOutdated, useExtensionStatus } from "@/lib/extension";
 
 const PERKS = [
   { icon: Play, title: "Perfectly in sync", body: "Play, pause and skip once — everyone's player follows." },
@@ -14,6 +14,7 @@ const PERKS = [
 export function ExtensionStep() {
   const { status } = useExtensionStatus();
   const installed = status.state === "installed";
+  const outdated = isExtensionOutdated(status);
 
   return (
     <div className="mx-auto grid max-w-3xl gap-5 md:grid-cols-[1fr_1.15fr]">
@@ -37,7 +38,9 @@ export function ExtensionStep() {
 
       <div className="animate-fade-up space-y-4 rounded-2xl bg-surface p-5 ring-1 ring-line" style={{ animationDelay: "120ms" }}>
         <ExtensionStatusBadge />
-        {installed ? (
+        {outdated ? (
+          <ExtensionUpdateNotice />
+        ) : installed ? (
           <p className="text-sm text-white/80">
             You&apos;re all set. Open any title on a supported service, press play, then click the ReelRoom icon in
             your toolbar to start a party.
