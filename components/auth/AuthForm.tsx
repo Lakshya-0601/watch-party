@@ -78,7 +78,7 @@ async function startSession(cred: UserCredential, remember: boolean): Promise<{ 
       body: JSON.stringify({ idToken, remember }),
     });
     const body = (await res.json().catch(() => ({}))) as { user?: User; prefs?: Preferences | null; error?: string };
-    if (!res.ok || !body.user) throw new Error(body.error ?? "Couldn't sign you in. Please try again.");
+    if (!res.ok || !body.user) throw new Error(body.error ?? `Couldn't sign you in (server error ${res.status}). Please try again.`);
     return { user: body.user, prefs: body.prefs ?? null };
   } finally {
     await signOut(firebaseAuth()).catch(() => {});

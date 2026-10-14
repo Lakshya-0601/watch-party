@@ -1,7 +1,5 @@
 import "server-only";
-import { cert, getApps, initializeApp, type App } from "firebase-admin/app";
-import { getAuth } from "firebase-admin/auth";
-import { getFirestore } from "firebase-admin/firestore";
+import type { App } from "firebase-admin/app";
 
 /**
  * Firebase Admin on the server: verifies sign-in tokens and reads / writes
@@ -13,6 +11,10 @@ import { getFirestore } from "firebase-admin/firestore";
  *
  * With FIREBASE_AUTH_EMULATOR_HOST / FIRESTORE_EMULATOR_HOST set, only the
  * project id is needed (local emulators).
+ *
+ * The SDK is loaded on first use (dynamic import) rather than at module load,
+ * so a problem loading it surfaces as a catchable error with a message
+ * instead of crashing every route that imports this file.
  */
 
 export class FirebaseNotConfiguredError extends Error {
@@ -21,12 +23,13 @@ export class FirebaseNotConfiguredError extends Error {
   }
 }
 
-function adminApp(): App {
+async function adminApp(): Promise<App> {
+  const { cert, getApps, initializeApp } = await import("firebase-admin/app");
   const existing = getApps()[0];
   if (existing) return existing;
 
   const projectId = process.env.FIREBASE_PROJECT_ID ?? process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
-  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL?.trim();
   // .env files store the key's newlines as "\n"; hosting dashboards sometimes keep the quotes too
   const privateKey = process.env.FIREBASE_PRIVATE_KEY?.trim()
     .replace(/^"([\s\S]*)"$/, "$1")
@@ -40,5 +43,18 @@ function adminApp(): App {
   throw new FirebaseNotConfiguredError();
 }
 
-export const adminAuth = () => getAuth(adminApp());
-export const firestore = () => getFirestore(adminApp());
+export async function adminAuth() {
+  const [app, { getAuth }] = await Promise.all([adminApp(), import("firebase-admin/auth")]);
+  return getAuth(app);
+}
+
+export async function firestore() {
+  const [app, { getFirestore }] = await Promise.all([adminApp(), import("firebase-admin/firestore")]);
+  return getFirestore(app);
+}
+
+/** `FieldValue.serverTimestamp()`, loaded on demand like the rest of the SDK. */
+export async function serverTimestamp() {
+  const { FieldValue } = await import("firebase-admin/firestore");
+  return FieldValue.serverTimestamp();
+}

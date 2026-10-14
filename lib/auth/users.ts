@@ -1,9 +1,8 @@
 import "server-only";
 import type { DecodedIdToken } from "firebase-admin/auth";
-import { FieldValue } from "firebase-admin/firestore";
 import { GENRES } from "@/lib/data/genres";
 import { STREAMING_SERVICES } from "@/lib/data/services";
-import { firestore } from "@/lib/firebase/admin";
+import { firestore, serverTimestamp } from "@/lib/firebase/admin";
 import type { Genre, ServiceId, User } from "@/lib/types";
 
 /**
@@ -27,7 +26,7 @@ const DB_TIMEOUT_MS = 5000;
 const SERVICE_IDS = new Set<string>(STREAMING_SERVICES.map((s) => s.id));
 const GENRE_IDS = new Set<string>(GENRES);
 
-const users = () => firestore().collection("users");
+const userDoc = async (uid: string) => (await firestore()).collection("users").doc(uid);
 
 /** After a failure, skip the database this long instead of making every page wait on the timeout. */
 const BACKOFF_MS = 30_000;
@@ -91,7 +90,7 @@ const prefsFrom = (data: FirebaseFirestore.DocumentData | undefined): Preference
  */
 export async function recordSignIn(user: User): Promise<Preferences | null> {
   try {
-    const ref = users().doc(user.id);
+    const ref = await withTimeout(userDoc(user.id));
     const snap = await withTimeout(ref.get());
     await withTimeout(
       ref.set(
@@ -100,8 +99,8 @@ export async function recordSignIn(user: User): Promise<Preferences | null> {
           email: user.email,
           picture: user.picture ?? null,
           provider: user.provider,
-          lastLoginAt: FieldValue.serverTimestamp(),
-          ...(snap.exists ? {} : { ...EMPTY_PREFS, createdAt: FieldValue.serverTimestamp() }),
+          lastLoginAt: await serverTimestamp(),
+          ...(snap.exists ? {} : { ...EMPTY_PREFS, createdAt: await serverTimestamp() }),
         },
         { merge: true },
       ),
@@ -116,7 +115,7 @@ export async function recordSignIn(user: User): Promise<Preferences | null> {
 /** Saved preferences, or null if the database couldn't be reached. */
 export async function getPreferences(uid: string): Promise<Preferences | null> {
   try {
-    const snap = await withTimeout(users().doc(uid).get());
+    const snap = await withTimeout(userDoc(uid).then((ref) => ref.get()));
     return prefsFrom(snap.data());
   } catch (err) {
     console.error("[db] couldn't read preferences:", err);
@@ -126,7 +125,8 @@ export async function getPreferences(uid: string): Promise<Preferences | null> {
 
 export async function savePreferences(uid: string, prefs: Preferences): Promise<boolean> {
   try {
-    await withTimeout(users().doc(uid).set({ ...prefs, updatedAt: FieldValue.serverTimestamp() }, { merge: true }));
+    const ref = await withTimeout(userDoc(uid));
+    await withTimeout(ref.set({ ...prefs, updatedAt: await serverTimestamp() }, { merge: true }));
     return true;
   } catch (err) {
     console.error("[db] couldn't save preferences:", err);
