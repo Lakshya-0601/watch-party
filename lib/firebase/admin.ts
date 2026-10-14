@@ -27,8 +27,10 @@ function adminApp(): App {
 
   const projectId = process.env.FIREBASE_PROJECT_ID ?? process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-  // .env files store the key's newlines as "\n"
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n");
+  // .env files store the key's newlines as "\n"; hosting dashboards sometimes keep the quotes too
+  const privateKey = process.env.FIREBASE_PRIVATE_KEY?.trim()
+    .replace(/^"([\s\S]*)"$/, "$1")
+    .replace(/\\n/g, "\n");
 
   if (projectId && clientEmail && privateKey) {
     return initializeApp({ credential: cert({ projectId, clientEmail, privateKey }), projectId });

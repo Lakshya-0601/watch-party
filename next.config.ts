@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // /api/extension/download zips extension/ from disk at runtime; ship it with
+  // the deployment (serverless bundles only include files that are imported)
+  outputFileTracingIncludes: {
+    "/api/extension/download": ["./extension/**/*"],
+  },
   // The flow starts at sign-in
   redirects() {
     return [{ source: "/", destination: "/auth", permanent: false }];
