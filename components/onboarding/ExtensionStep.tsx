@@ -6,7 +6,7 @@ import { isExtensionOutdated, useExtensionStatus } from "@/lib/extension";
 
 const PERKS = [
   { icon: Play, title: "Perfectly in sync", body: "Play, pause and skip once — everyone's player follows." },
-  { icon: MessageCircle, title: "Chat on the video", body: "Messages and reactions float right over Netflix, JioHotstar and Prime Video." },
+  { icon: MessageCircle, title: "Chat on the video", body: "Messages and reactions float right over Netflix, JioHotstar, Prime Video, Apple TV+ and Crunchyroll." },
   { icon: ShieldCheck, title: "Your own account", body: "Everyone streams with their own subscription. We never see your logins." },
 ];
 

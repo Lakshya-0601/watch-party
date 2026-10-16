@@ -63,6 +63,9 @@ export function extensionAtLeast(s: ExtensionStatus, min: string) {
 /** First extension version that can join a room handed over by the site (app-bridge "join-room"). */
 export const EXTENSION_JOIN_VERSION = "0.3.2";
 
+/** First extension version that syncs each service (older ones don't run on the newer sites). */
+export const EXTENSION_PROVIDER_VERSION: Record<string, string> = { appletv: "0.4.0", crunchyroll: "0.4.0" };
+
 /**
  * Ask the extension to join a room (it knocks; the host admits). Resolves with
  * the extension's answer, or an error if it doesn't reply within a few seconds.

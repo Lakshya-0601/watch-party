@@ -48,11 +48,14 @@
   /** The player chrome around the video: a few levels up, where ad badges and timers live. */
   function playerRoot(video) {
     let el = video;
-    for (let i = 0; i < 6 && el.parentElement && el.parentElement !== document.body; i++) el = el.parentElement;
+    // Stop at <body> (a bare player page puts the video and its badges right in it), never <html>
+    for (let i = 0; i < 6 && el !== document.body && el.parentElement && el.parentElement !== document.documentElement; i++) {
+      el = el.parentElement;
+    }
     return el;
   }
 
-  /** A visible ad label or ad marker in the player — works across Netflix, JioHotstar and Prime. */
+  /** A visible ad label or ad marker in the player — works across every supported site. */
   function adLabelVisible(video) {
     if (!video?.isConnected) return false;
     const root = playerRoot(video);
@@ -66,7 +69,7 @@
     return false;
   }
 
-  /** Plain HTMLMediaElement control — fine for JioHotstar and Prime Video. */
+  /** Plain HTMLMediaElement control — fine for JioHotstar, Prime Video, Apple TV+ and Crunchyroll. */
   const generic = {
     play: (video) => video.play(),
     pause: (video) => video.pause(),
@@ -174,5 +177,41 @@
         .some(visible) || adLabelVisible(video),
   };
 
-  ReelRoom.adapters = { netflix, hotstar, prime };
+  /* ----------------------------------------------------------- Apple TV+ -- */
+
+  const appletv = {
+    ...generic,
+    id: "appletv",
+    name: "Apple TV+",
+    // /in/episode/<slug>/umc.cmc.… · /in/movie/<slug>/umc.cmc.… — the player can also open over a show page
+    isWatchPage: () =>
+      /\/(?:episode|movie)\/[^/]+\/umc\./.test(location.pathname) ||
+      Boolean(document.querySelector("apple-tv-plus-player, amp-video-player-internal")),
+    canonicalUrl: () => `https://tv.apple.com${location.pathname.replace(/\/$/, "")}`,
+    // "Watch Severance - Apple TV" (Apple prefixes an invisible left-to-right mark)
+    title: () =>
+      document.title.replace(/[\u200e\u200f]/g, "").replace(/^Watch\s+/i, "").replace(/\s*[|–-]\s*Apple TV\+?\s*$/i, "").trim(),
+  };
+
+  /* --------------------------------------------------------- Crunchyroll -- */
+
+  const crunchyroll = {
+    ...generic,
+    id: "crunchyroll",
+    name: "Crunchyroll",
+    // The video plays in Crunchyroll's player iframe (static.crunchyroll.com/vilos-v2/…).
+    // content.js runs in both; the page tells the player iframe the URL and title.
+    playerFrame: { origin: "https://static.crunchyroll.com", pageOrigin: "https://www.crunchyroll.com" },
+    // /watch/G8WUND3JW/ryomen-sukuna (optionally under a locale: /es-es/watch/…)
+    isWatchPage: () => /\/watch\/[A-Z0-9]+/i.test(location.pathname),
+    canonicalUrl: () => {
+      const m = location.pathname.match(/\/watch\/([A-Z0-9]+)(?:\/([^/]+))?/i);
+      return m ? `https://www.crunchyroll.com/watch/${m[1]}${m[2] ? `/${m[2]}` : ""}` : `https://www.crunchyroll.com${location.pathname}`;
+    },
+    title: () =>
+      text(".erc-current-media-info h1") ?? text('[data-t="episode-title"]') ??
+      document.title.replace(/^Watch\s+/i, "").replace(/\s*[|–-]\s*Crunchyroll.*$/i, "").trim(),
+  };
+
+  ReelRoom.adapters = { netflix, hotstar, prime, appletv, crunchyroll };
 })();

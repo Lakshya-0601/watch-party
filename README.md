@@ -4,7 +4,7 @@
 
 **Movie night, together, even when you're apart.**
 
-Watch Netflix, JioHotstar and Prime Video in perfect sync with your friends: shared play, pause, seek and speed, plus live chat and emoji reactions right on the streaming page.
+Watch Netflix, JioHotstar, Prime Video, Apple TV+ and Crunchyroll in perfect sync with your friends: shared play, pause, seek and speed, plus live chat and emoji reactions right on the streaming page.
 
 ### 👉 [reelroom-vz4n.onrender.com](https://reelroom-vz4n.onrender.com)
 
@@ -35,7 +35,7 @@ Watch Netflix, JioHotstar and Prime Video in perfect sync with your friends: sha
 
 ## What is ReelRoom?
 
-ReelRoom is a web app plus a Chrome extension that turns any movie or show on **Netflix, JioHotstar or Prime Video** into a watch party.
+ReelRoom is a web app plus a Chrome extension that turns any movie or show on **Netflix, JioHotstar, Prime Video, Apple TV+ or Crunchyroll** into a watch party.
 
 - **Everyone watches on their own account.** ReelRoom never streams, records or shares video. It only keeps everyone's players at the same moment.
 - **The host is in charge.** The person who starts the party lets guests in and decides who may pause or skip.
@@ -50,7 +50,7 @@ The website at **[reelroom-vz4n.onrender.com](https://reelroom-vz4n.onrender.com
 1. Open **[reelroom-vz4n.onrender.com](https://reelroom-vz4n.onrender.com)** in **Google Chrome** (or Microsoft Edge) on a computer, and sign in.
 2. Pick your streaming services and favourite genres.
 3. Click **Download the extension**, unzip it and load it in `chrome://extensions` ([step-by-step below](#3-install-the-browser-extension)).
-4. **Host:** open a title on Netflix, JioHotstar or Prime Video, click the ReelRoom button on the page, choose **Start a party** and send the invite link to your friends.
+4. **Host:** open a title on Netflix, JioHotstar, Prime Video, Apple TV+ or Crunchyroll, click the ReelRoom button on the page, choose **Start a party** and send the invite link to your friends.
 5. **Guests:** open the invite link (or type the room code into the ReelRoom panel). The host admits you, and your player jumps to the same moment.
 
 > Every guest needs **their own** ReelRoom account, the extension, and **their own subscription** to the streaming service.
@@ -62,7 +62,7 @@ The website at **[reelroom-vz4n.onrender.com](https://reelroom-vz4n.onrender.com
 |                             |                                                                                                                                                                   |
 | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 🔄 **Synced playback**      | Play, pause, seek and playback speed stay in sync for everyone, usually within a fraction of a second. Small drifts are corrected smoothly without jarring jumps. |
-| 📺 **5 streaming services** | Discover titles on Netflix, JioHotstar, Prime Video, Apple TV+ and Crunchyroll. Watch parties work on Netflix, JioHotstar and Prime Video. |
+| 📺 **5 streaming services** | Netflix, JioHotstar, Prime Video, Apple TV+ and Crunchyroll: browse titles from all of them and host watch parties on any of them. |
 | 🎟️ **Host approval**        | Guests "knock" and the host admits or declines them. Up to **15 people** per party.                                                                               |
 | 🎮 **Playback control**     | By default only the host controls playback. Guests can **request control**, and the host can grant or revoke it at any time.                                      |
 | 💬 **Live chat**            | Messages up to 50 characters, with an emoji picker. Optional one-second popups at the bottom of the screen show new messages while you watch.                     |
@@ -128,12 +128,12 @@ The **Discover** page shows titles from your services. You can:
 **From the website:**
 
 1. Click **Watch together** on a title, or **+ Create Watch Room** in the top bar.
-2. Choose the service (Netflix, JioHotstar or Prime Video). ReelRoom opens the title there in a new tab.
+2. Choose the service (Netflix, JioHotstar, Prime Video, Apple TV+ or Crunchyroll). ReelRoom opens the title there in a new tab.
 3. Follow the steps in the window: press play on the streaming site, then start the party from the ReelRoom panel.
 
 **Directly on the streaming site:**
 
-1. Open the movie or episode on Netflix, JioHotstar or Prime Video and start playing it.
+1. Open the movie or episode on Netflix, JioHotstar, Prime Video, Apple TV+ or Crunchyroll and start playing it.
 2. Click the **ReelRoom ▶ button** on the edge of the page, or the ReelRoom icon in Chrome's toolbar.
 3. Click **Start a party**.
 4. Click the **Room abc-234-xyz ⧉** chip in the chat to **copy the invite link**, and send it to your friends on WhatsApp, Discord or anywhere else.
@@ -211,12 +211,13 @@ The ReelRoom panel has two tabs.
 
 **Accounts and subscriptions**
 
-- 🔐 **Everyone needs their own streaming subscription.** ReelRoom does not share accounts or video. Each person watches on their own Netflix, JioHotstar or Prime Video plan, and ReelRoom only keeps the players in sync.
+- 🔐 **Everyone needs their own streaming subscription.** ReelRoom does not share accounts or video. Each person watches on their own Netflix, JioHotstar, Prime Video, Apple TV+ or Crunchyroll plan, and ReelRoom only keeps the players in sync.
 - 🌍 **The title must be available to every guest.** Catalogues differ by country and by plan. If a friend can't open the title on their account, ReelRoom can't sync it for them.
 - 📺 **Ad-supported plans work**, but the person with ads misses the few seconds the others watched during the ad, because they jump back to the group's position. Ad breaks are detected from the player's on-screen ad labels. If a service changes its player and the panel stops saying "Ad break on your side" during an ad, please [open an issue](https://github.com/Lakshya-0601/watch-party/issues).
 
 **Browser and device**
 
+- 🍎 **Apple TV+ and Crunchyroll are the newest additions** (extension 0.4.0). Open the specific episode or movie page and press play there; on Apple TV+, starting from a show's page works but guests should open the same episode. If something doesn't sync, please [open an issue](https://github.com/Lakshya-0601/watch-party/issues) with a screenshot.
 - 💻 **Desktop browsers only.** Parties need the extension, which runs in **Google Chrome** or **Microsoft Edge** on a computer. Phones, tablets, smart-TV apps and the streaming services' desktop apps are not supported. Use their websites in Chrome instead.
 - 🧩 **Only install the extension from the official ReelRoom site.** "Developer mode" lets Chrome load extensions from a folder. Never load extension folders that someone sends you from elsewhere. Chrome may remind you that developer-mode extensions are on; that's expected for ReelRoom.
 - 🔄 **Keep the extension up to date**, and make sure everyone in the party uses the same latest version.
@@ -232,7 +233,7 @@ The ReelRoom panel has two tabs.
 
 **General**
 
-- 🙅 ReelRoom is an independent project and is **not affiliated with Netflix, JioHotstar or Amazon Prime Video**. It doesn't bypass DRM, download content, block ads or change what you can watch.
+- 🙅 ReelRoom is an independent project and is **not affiliated with Netflix, JioHotstar, Amazon Prime Video, Apple TV+ or Crunchyroll**. It doesn't bypass DRM, download content, block ads or change what you can watch.
 - 📝 Be kind in the chat. The host can mute or remove people.
 
 ---
@@ -250,7 +251,7 @@ The ReelRoom panel has two tabs.
 
 | Permission                                     | Why                                                                                             |
 | ---------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `netflix.com`, `hotstar.com`, `primevideo.com` | To find the video player, keep it in sync and show the ReelRoom panel. **Only on these sites.** |
+| `netflix.com`, `hotstar.com`, `primevideo.com`, `tv.apple.com`, `crunchyroll.com` | To find the video player, keep it in sync and show the ReelRoom panel. **Only on these sites.** (On Crunchyroll it also runs inside the player frame on `static.crunchyroll.com`, where the video actually plays.) |
 | `storage`                                      | To remember your sign-in token and settings (such as chat popups).                              |
 | `activeTab`, `scripting`                       | So the toolbar button can open the ReelRoom panel on the tab you're looking at.                 |
 | `clipboardWrite`                               | To copy invite links when you click the room chip.                                              |
@@ -293,7 +294,8 @@ The extension doesn't read your browsing history, your streaming account details
 ### How it works
 
 ```
- Streaming tab (Netflix / JioHotstar / Prime)        ReelRoom server (Render)
+ Streaming tab (Netflix, JioHotstar, Prime,         ReelRoom server (Render)
+               Apple TV+, Crunchyroll)
  ┌───────────────────────────────────────┐          ┌───────────────────────────┐
  │ <video> ◄─► SyncEngine                │          │ /realtime  WebSocket      │
  │ ReelRoom panel (chat, people, host)   │◄────────►│   gateway                 │

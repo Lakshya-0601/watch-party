@@ -439,11 +439,13 @@ void restore();
 
 /** On install/update, add our scripts to tabs that were already open. */
 chrome.runtime.onInstalled.addListener(async () => {
-  const streaming = ["*://*.netflix.com/*", "*://*.hotstar.com/*", "*://*.primevideo.com/*"];
+  const streaming = chrome.runtime.getManifest().content_scripts[1].matches;
   const contentFiles = chrome.runtime.getManifest().content_scripts[1].js;
   for (const tab of await chrome.tabs.query({ url: streaming })) {
     try {
-      await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ["content/keyguard.js", ...contentFiles] });
+      // Crunchyroll plays in an iframe: inject there too (content.js ignores any other frame)
+      const allFrames = /crunchyroll\.com/.test(tab.url ?? "");
+      await chrome.scripting.executeScript({ target: { tabId: tab.id, allFrames }, files: ["content/keyguard.js", ...contentFiles] });
       if (/netflix\.com/.test(tab.url ?? "")) {
         await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ["page/netflix-bridge.js"], world: "MAIN" });
       }

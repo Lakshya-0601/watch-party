@@ -172,6 +172,15 @@
       ReelRoom.onOverlayKey = (e) => e.key === "Escape" && this.close();
       document.addEventListener("fullscreenchange", () => this.reparent());
       this.reparent();
+      if (this.visible === false) this.setVisible(false);
+    }
+
+    /** Show or hide everything (a player iframe shows its panel only while fullscreen). */
+    setVisible(visible) {
+      this.visible = visible;
+      if (!this.host) return;
+      if (visible) this.host.style.removeProperty("display");
+      else this.host.style.setProperty("display", "none", "important");
     }
 
     /** Keep the overlay visible in fullscreen by moving it into the fullscreen element. */

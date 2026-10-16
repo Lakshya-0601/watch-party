@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Player-iframe preview (player)</title>
+    <style>
+      html, body { margin: 0; height: 100%; background: #000; }
+      video { width: 100%; height: 100%; display: block; }
+    </style>
+  </head>
+  <body>
+    <!-- Stands in for static.crunchyroll.com/vilos-v2/…/player.html -->
+    <video id="v" muted playsinline preload="auto" src="https://download.blender.org/durian/trailer/sintel_trailer-720p.mp4"></video>
+
+    <script src="../shared/config.js"></script>
+    <script src="../shared/protocol.js"></script>
+    <script src="frame-stub.js"></script>
+    <script src="../content/keyguard.js"></script>
+    <script src="../content/video-finder.js"></script>
+    <script src="../content/site-adapters.js"></script>
+    <script src="../content/sync-engine.js"></script>
+    <script src="../content/overlay-styles.js"></script>
+    <script src="../content/overlay.js"></script>
+    <script>ReelRoomDev.patchAdapters();</script>
+    <script src="../content/content.js"></script>
+  </body>
+</html>

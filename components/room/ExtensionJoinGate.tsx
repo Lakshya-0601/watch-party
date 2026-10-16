@@ -7,6 +7,7 @@ import { Card } from "@/components/room/JoinGate";
 import { ExtensionUpdateNotice, InstallSteps } from "@/components/extension/ExtensionInstall";
 import {
   EXTENSION_JOIN_VERSION,
+  EXTENSION_PROVIDER_VERSION,
   extensionAtLeast,
   joinRoomWithExtension,
   useExtensionStatus,
@@ -17,6 +18,8 @@ const PROVIDER_NAMES: Record<RoomMedia["provider"], string> = {
   netflix: "Netflix",
   hotstar: "JioHotstar",
   prime: "Prime Video",
+  appletv: "Apple TV+",
+  crunchyroll: "Crunchyroll",
 };
 
 interface Props {
@@ -39,7 +42,9 @@ export function ExtensionJoinGate({ code, view, onUseWeb }: Props) {
 
   const media = view.media!;
   const provider = PROVIDER_NAMES[media.provider] ?? media.provider;
-  const ready = extensionAtLeast(status, EXTENSION_JOIN_VERSION);
+  const ready =
+    extensionAtLeast(status, EXTENSION_JOIN_VERSION) &&
+    extensionAtLeast(status, EXTENSION_PROVIDER_VERSION[media.provider] ?? EXTENSION_JOIN_VERSION);
 
   const webFallback = (
     <button onClick={onUseWeb} className="mt-5 text-xs font-medium text-muted underline-offset-2 transition hover:text-white hover:underline">

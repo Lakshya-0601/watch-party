@@ -36,10 +36,12 @@
     if (/(^|\.)netflix\.com$/.test(hostname)) return "netflix";
     if (/(^|\.)hotstar\.com$/.test(hostname)) return "hotstar";
     if (/(^|\.)primevideo\.com$/.test(hostname)) return "prime";
+    if (hostname === "tv.apple.com") return "appletv";
+    if (/(^|\.)crunchyroll\.com$/.test(hostname)) return "crunchyroll"; // incl. the player iframe on static.crunchyroll.com
     return null;
   }
 
-  const PROVIDER_NAMES = { netflix: "Netflix", hotstar: "JioHotstar", prime: "Prime Video" };
+  const PROVIDER_NAMES = { netflix: "Netflix", hotstar: "JioHotstar", prime: "Prime Video", appletv: "Apple TV+", crunchyroll: "Crunchyroll" };
 
   /**
    * Where playback *should* be right now according to the room's shared
@@ -51,13 +53,18 @@
     return playback.position + (playback.playing ? ((serverNow - playback.updatedAt) / 1000) * rate : 0);
   }
 
-  /** Two media URLs point at the same title (ignores query/hash/trailing slash). */
+  /** A URL path without its trailing slash or a leading country/locale segment (/in/…, /es-es/…). */
+  const titlePath = (url) => url.pathname.replace(/\/$/, "").replace(/^\/[a-z]{2}(?:-[a-z]{2,4})?(?=\/)/i, "");
+
+  /**
+   * Two media URLs point at the same title (ignores query/hash/trailing slash,
+   * and the country in the path, so friends in different regions still match).
+   */
   function sameMedia(a, b) {
     try {
       const x = new URL(a);
       const y = new URL(b);
-      return x.hostname.replace(/^www\./, "") === y.hostname.replace(/^www\./, "") &&
-        x.pathname.replace(/\/$/, "") === y.pathname.replace(/\/$/, "");
+      return x.hostname.replace(/^www\./, "") === y.hostname.replace(/^www\./, "") && titlePath(x) === titlePath(y);
     } catch {
       return false;
     }

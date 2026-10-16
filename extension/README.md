@@ -1,6 +1,6 @@
 # ReelRoom browser extension (Manifest V3)
 
-Watch Netflix, JioHotstar and Prime Video in sync: shared play / pause / seek / speed, live chat, emoji reactions and host-controlled rooms — injected right into the streaming page. Every participant streams with their own subscription; the extension only synchronises the players.
+Watch Netflix, JioHotstar, Prime Video, Apple TV+ and Crunchyroll in sync: shared play / pause / seek / speed, live chat, emoji reactions and host-controlled rooms — injected right into the streaming page. Every participant streams with their own subscription; the extension only synchronises the players.
 
 ## Run it locally
 
@@ -34,11 +34,16 @@ app/app-bridge.js (on the ReelRoom web app) ── token hand-off ──► chro
 | `content/video-finder.js` | Finds the main `<video>` (MutationObserver + shadow-DOM scan + trailer filtering) |
 | `content/sync-engine.js` | Remote→local reconcile (seek / ±5% rate nudge), local→remote broadcast, feedback-loop guards |
 | `content/site-adapters.js` | Per-site URLs, titles, ad detection, and Netflix-safe seeking |
+| `dev/frame-preview.html` | Dev harness for a player in a cross-origin iframe (how Crunchyroll works): page on `localhost`, player on `127.0.0.1` |
 | `page/netflix-bridge.js` | Runs in Netflix's page world to seek via its player API (direct `currentTime` writes trigger error M7375) |
 | `content/overlay*.js` | In-page chat, people, host approvals, toasts, floating reactions (closed shadow root) |
 | `content/keyguard.js` | Stops site hotkeys (Space, F, M, arrows) from firing while you type in the overlay |
 | `popup/` | Toolbar popup: sign-in state, start / join, invite link, participants, reactions |
 | `app/app-bridge.js` | Receives the signed token from the web app (`components/ExtensionBridge.tsx`) |
+
+### Players inside an iframe (Crunchyroll)
+
+Crunchyroll plays the video in an iframe on `static.crunchyroll.com`, which the page can't reach into. `content.js` therefore runs in two roles: **page** (the site: knows the URL and title, shows the panel) and **player** (the iframe: finds the `<video>`, runs the sync engine). Each has its own port to the background, and they talk over `window.postMessage` with origin checks: the page sends `{ url, title, isWatchPage }` down, the player reports `{ hasVideo, adBreak, autoplayBlocked }` and hands its toasts up. The player's own panel only appears while the player is fullscreen, when the page is hidden behind it.
 
 ### Sync state machine (content/sync-engine.js)
 

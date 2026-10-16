@@ -6,6 +6,8 @@ const PROVIDER: Record<RoomMedia["provider"], { name: string; color: string }> =
   netflix: { name: "Netflix", color: "#e50914" },
   hotstar: { name: "JioHotstar", color: "#4f6bff" },
   prime: { name: "Prime Video", color: "#1fa8ff" },
+  appletv: { name: "Apple TV+", color: "#e8e8ed" },
+  crunchyroll: { name: "Crunchyroll", color: "#f47521" },
 };
 
 /**

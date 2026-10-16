@@ -84,6 +84,8 @@ const MEDIA_HOSTS: Record<MediaProvider, RegExp> = {
   netflix: /(^|\.)netflix\.com$/,
   hotstar: /(^|\.)hotstar\.com$/,
   prime: /(^|\.)(primevideo\.com|amazon\.com)$/,
+  appletv: /^tv\.apple\.com$/,
+  crunchyroll: /(^|\.)crunchyroll\.com$/,
 };
 
 /** Validate and normalise extension-supplied media, or return null. */

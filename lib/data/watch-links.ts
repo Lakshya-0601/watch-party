@@ -43,7 +43,7 @@ const DIRECT: Partial<Record<string, Partial<Record<ServiceId, string>>>> = {
 };
 
 /** Services the ReelRoom extension can sync (keep in step with extension/manifest.json). */
-export const SYNC_SUPPORTED: ServiceId[] = ["netflix", "hotstar", "prime"];
+export const SYNC_SUPPORTED: ServiceId[] = ["netflix", "hotstar", "prime", "appletv", "crunchyroll"];
 export const canSync = (id: ServiceId) => SYNC_SUPPORTED.includes(id);
 
 export function watchLink(title: Title | null, service: ServiceId): { url: string; direct: boolean } {
