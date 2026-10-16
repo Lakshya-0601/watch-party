@@ -67,6 +67,7 @@
      * @param {{
      *   onAction: (action: object) => Promise<{ ok: boolean, error?: string }>,
      *   onCreateParty: () => Promise<{ ok: boolean, error?: string }>,
+     *   onJoinParty: (codeOrLink: string) => Promise<{ ok: boolean, error?: string }>,
      *   onLeave: (end: boolean) => void,
      *   onOpenMedia: (url: string) => void,
      *   onResumeSync: () => void,
@@ -144,6 +145,16 @@
         )),
         $("people", h("section.people", { hidden: true }, $("peopleList", h("ul.people-list")))),
         $("foot", h("footer.foot", {}, $("control", h("div.control")), $("leave", h("button.btn", { onclick: () => this.leave() }, "Leave")))),
+      ));
+
+      // Built once and re-attached on each idle render, so re-renders don't wipe what was typed
+      $("joinForm", h("form.join-party", { onsubmit: (ev) => this.joinParty(ev) },
+        h("label", { htmlFor: "rr-join-code" }, "Have a room code?"),
+        h("div.row", {},
+          $("joinInput", h("input", { id: "rr-join-code", placeholder: "abc-234-xyz or invite link", autocomplete: "off", spellcheck: false })),
+          $("joinButton", h("button.btn.light", { type: "submit" }, "Join")),
+        ),
+        $("joinError", h("p.join-error", { role: "alert", hidden: true })),
       ));
 
       this.rootEl.append(launcher, panel, $("toasts", h("div.toasts", { "aria-live": "polite" })), $("floaters", h("div.floaters")),
@@ -365,8 +376,9 @@
         }, `Start a party on ${ctx.providerName}`);
         children.push(h("p", {}, "Everyone you invite stays in sync with your play, pause and seeks."), start);
       } else {
-        children.push(h("p", {}, `Open a title on ${ctx.providerName} to start a party — or join one from the ReelRoom toolbar button.`));
+        children.push(h("p", {}, `Open a title on ${ctx.providerName} to start a party — or join one with a code.`));
       }
+      if (this.state.user) children.push(h("div.or", {}, "or join a party"), this.els.joinForm);
       this.els.idle.replaceChildren(...children);
     }
 
@@ -698,6 +710,26 @@
     async react(emoji) {
       const res = await this.cb.onAction({ type: "react", emoji });
       if (!res.ok) this.toast({ title: res.error ?? "Couldn't react", compact: true, duration: 2000 });
+    }
+
+    /** Join a party by room code or invite link (the extension knocks; the host admits). */
+    async joinParty(e) {
+      e.preventDefault();
+      const input = this.els.joinInput.value.trim();
+      const err = this.els.joinError;
+      if (!input) {
+        err.hidden = false;
+        err.textContent = "Enter the room code your host shared (like abc-234-xyz).";
+        return this.els.joinInput.focus();
+      }
+      this.els.joinButton.disabled = true;
+      this.els.joinButton.textContent = "Joining…";
+      const res = await this.cb.onJoinParty(input);
+      this.els.joinButton.disabled = false;
+      this.els.joinButton.textContent = "Join";
+      err.hidden = res.ok;
+      if (!res.ok) err.textContent = res.error ?? "Couldn't join that room.";
+      else this.els.joinInput.value = "";
     }
 
     async requestControl() {

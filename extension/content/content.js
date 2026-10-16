@@ -96,6 +96,7 @@
   const overlay = new ReelRoom.Overlay({
     onAction: action,
     onCreateParty: () => call({ type: "create", media: currentMedia() }),
+    onJoinParty: (input) => call({ type: "connect", input }),
     onLeave: (end) => call({ type: "leave", end }),
     onOpenMedia: (url) => location.assign(url),
     onResumeSync: () => {

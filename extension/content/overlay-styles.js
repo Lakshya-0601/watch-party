@@ -145,6 +145,19 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ember); out
   gap: 12px; padding: 24px; text-align: center; }
 .idle-state p { color: var(--muted); font-size: 13px; }
 .idle-state h3 { font-size: 16px; font-weight: 700; }
+.or { display: flex; align-items: center; gap: 10px; width: 100%; margin-top: 10px; color: var(--muted);
+  font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; }
+.or::before, .or::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.join-party { width: 100%; display: flex; flex-direction: column; gap: 7px; text-align: left; }
+.join-party label { font-size: 12px; color: var(--muted); }
+.join-party .row { display: flex; gap: 6px; }
+.join-party input { flex: 1; min-width: 0; height: 36px; padding: 0 12px; border-radius: 10px; outline: none;
+  background: var(--surface-2); border: 1px solid var(--line); color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .04em; }
+.join-party input::placeholder { color: rgba(255,255,255,.3); font-family: inherit; }
+.join-party input:focus { border-color: var(--ember); }
+.join-party .btn { height: 36px; }
+.join-error { font-size: 11.5px; color: var(--danger); }
 
 /* ---------- toasts ---------- */
 .toasts { position: fixed; top: 72px; left: 50%; transform: translateX(-50%); z-index: 2147483647;
