@@ -59,21 +59,21 @@ The website at **[reelroom-vz4n.onrender.com](https://reelroom-vz4n.onrender.com
 
 ## Features
 
-| | |
-| --- | --- |
-| 🔄 **Synced playback** | Play, pause, seek and playback speed stay in sync for everyone, usually within a fraction of a second. Small drifts are corrected smoothly without jarring jumps. |
-| 📺 **3 streaming services** | Netflix, JioHotstar and Prime Video. |
-| 🎟️ **Host approval** | Guests "knock" and the host admits or declines them. Up to **15 people** per party. |
-| 🎮 **Playback control** | By default only the host controls playback. Guests can **request control**, and the host can grant or revoke it at any time. |
-| 💬 **Live chat** | Messages up to 50 characters, with an emoji picker. Optional one-second popups at the bottom of the screen show new messages while you watch. |
-| 😂 **Reactions** | One-tap emoji reactions float across everyone's screen. |
-| ⏱️ **Message gap** | The host chooses how long guests wait between messages: off, or anywhere from 1 to 30 seconds. |
-| 🔇 **Moderation** | The host can mute the whole chat, mute one person, or remove someone. |
-| 📢 **Ad-break handling** | If one person's plan has ads, the ad plays only for them. The party keeps going, and when the ad ends they jump straight back to where everyone is. |
-| ⏭️ **Next episode** | When the host moves to another title or episode on the same service, the party follows. |
-| 🔗 **Invite links & codes** | Share a link like `reelroom-vz4n.onrender.com/room/abc-234-xyz`, or just the code `abc-234-xyz`. |
-| 🍿 **Discover** | Browse titles across your services, filter by genre or mood, and see an audience sentiment score for each title. |
-| 👤 **Accounts** | Sign in with Google or email and password, with "Remember me" and password reset. |
+|                             |                                                                                                                                                                   |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🔄 **Synced playback**      | Play, pause, seek and playback speed stay in sync for everyone, usually within a fraction of a second. Small drifts are corrected smoothly without jarring jumps. |
+| 📺 **7 streaming services** | Discover titles on Netflix, JioHotstar, Prime Video, Apple TV+, Max, Hulu and Crunchyroll. Watch parties work on Netflix, JioHotstar and Prime Video. |
+| 🎟️ **Host approval**        | Guests "knock" and the host admits or declines them. Up to **15 people** per party.                                                                               |
+| 🎮 **Playback control**     | By default only the host controls playback. Guests can **request control**, and the host can grant or revoke it at any time.                                      |
+| 💬 **Live chat**            | Messages up to 50 characters, with an emoji picker. Optional one-second popups at the bottom of the screen show new messages while you watch.                     |
+| 😂 **Reactions**            | One-tap emoji reactions float across everyone's screen.                                                                                                           |
+| ⏱️ **Message gap**          | The host chooses how long guests wait between messages: off, or anywhere from 1 to 30 seconds.                                                                    |
+| 🔇 **Moderation**           | The host can mute the whole chat, mute one person, or remove someone.                                                                                             |
+| 📢 **Ad-break handling**    | If one person's plan has ads, the ad plays only for them. The party keeps going, and when the ad ends they jump straight back to where everyone is.               |
+| ⏭️ **Next episode**         | When the host moves to another title or episode on the same service, the party follows.                                                                           |
+| 🔗 **Invite links & codes** | Share a link like `reelroom-vz4n.onrender.com/room/abc-234-xyz`, or just the code `abc-234-xyz`.                                                                  |
+| 🍿 **Discover**             | Browse titles across your services, filter by genre or mood, and see an audience sentiment score for each title.                                                  |
+| 👤 **Accounts**             | Sign in with Google or email and password, with "Remember me" and password reset.                                                                                 |
 
 ---
 
@@ -163,25 +163,30 @@ Before you join, make sure you have a ReelRoom account, the extension installed,
 The ReelRoom panel has two tabs.
 
 **💬 Chat**
+
 - Send messages of up to 50 characters, and add emojis with the ☺ button.
 - Tap the reaction bar (😂 😱 😭 🔥 ❤️ 👏 🍿) to float a reaction across everyone's screen.
 - **🔔 Popups** turns the one-second message popups on or off. This is a personal setting.
 - If the host has set a **message gap**, the send button counts down until you can send again.
 
 **👥 People**
+
 - See who's in the room, who's online and who has playback control.
 - Guests can **Request control**. The host then sees Grant and Decline buttons.
 
 **Playback**
+
 - The host, and anyone they've given control, can play, pause, seek or change speed using the streaming site's normal controls. Everyone else follows automatically.
 - If a guest without control pauses or skips, their player snaps back and they're offered **Request control**.
 - If Chrome blocks autoplay, the panel shows **"Click to sync playback"**. One click fixes it.
 
 **Ad breaks**
+
 - If your plan shows ads, the ad plays for you only, and the panel says **"Ad break on your side"**. The rest of the party keeps watching.
 - When the ad finishes, you're taken straight to where everyone else is. You'll skip the part they watched during your ad, so you stay together.
 
 **Leaving and ending**
+
 - Guests click **Leave** to exit. You can knock again with the same link.
 - The host's button says **End party** (click it twice to confirm). Ending closes the party for everyone.
 
@@ -189,27 +194,29 @@ The ReelRoom panel has two tabs.
 
 ## Host controls
 
-| Control | Where | What it does |
-| --- | --- | --- |
-| **Admit / Deny** | People tab (and pop-up notices) | Let a guest in, or turn them away. |
-| **Grant / Revoke control** | People tab | Allow a guest to play, pause and seek for everyone. |
-| **Mute (one person)** | People tab | Stop one guest from chatting or reacting. |
-| **Remove** | People tab | Kick someone out of the party. |
-| **Mute chat** | Chat tab | Only the host can chat until unmuted. |
-| **Message gap** | Chat tab slider | Guests wait 0 (off) to 30 seconds between messages. The host is never limited. |
-| **Switch title** | Just open another title | The party moves to the new title or episode on the same service. |
-| **End party** | Panel footer (click twice) | Closes the room for everyone. |
+| Control                    | Where                           | What it does                                                                   |
+| -------------------------- | ------------------------------- | ------------------------------------------------------------------------------ |
+| **Admit / Deny**           | People tab (and pop-up notices) | Let a guest in, or turn them away.                                             |
+| **Grant / Revoke control** | People tab                      | Allow a guest to play, pause and seek for everyone.                            |
+| **Mute (one person)**      | People tab                      | Stop one guest from chatting or reacting.                                      |
+| **Remove**                 | People tab                      | Kick someone out of the party.                                                 |
+| **Mute chat**              | Chat tab                        | Only the host can chat until unmuted.                                          |
+| **Message gap**            | Chat tab slider                 | Guests wait 0 (off) to 30 seconds between messages. The host is never limited. |
+| **Switch title**           | Just open another title         | The party moves to the new title or episode on the same service.               |
+| **End party**              | Panel footer (click twice)      | Closes the room for everyone.                                                  |
 
 ---
 
 ## Precautions & good to know
 
 **Accounts and subscriptions**
+
 - 🔐 **Everyone needs their own streaming subscription.** ReelRoom does not share accounts or video. Each person watches on their own Netflix, JioHotstar or Prime Video plan, and ReelRoom only keeps the players in sync.
 - 🌍 **The title must be available to every guest.** Catalogues differ by country and by plan. If a friend can't open the title on their account, ReelRoom can't sync it for them.
 - 📺 **Ad-supported plans work**, but the person with ads misses the few seconds the others watched during the ad, because they jump back to the group's position. Ad breaks are detected from the player's on-screen ad labels. If a service changes its player and the panel stops saying "Ad break on your side" during an ad, please [open an issue](https://github.com/Lakshya-0601/watch-party/issues).
 
 **Browser and device**
+
 - 💻 **Desktop browsers only.** Parties need the extension, which runs in **Google Chrome** or **Microsoft Edge** on a computer. Phones, tablets, smart-TV apps and the streaming services' desktop apps are not supported. Use their websites in Chrome instead.
 - 🧩 **Only install the extension from the official ReelRoom site.** "Developer mode" lets Chrome load extensions from a folder. Never load extension folders that someone sends you from elsewhere. Chrome may remind you that developer-mode extensions are on; that's expected for ReelRoom.
 - 🔄 **Keep the extension up to date**, and make sure everyone in the party uses the same latest version.
@@ -217,12 +224,14 @@ The ReelRoom panel has two tabs.
 - 📶 **A stable internet connection** gives the best sync. On slow connections the player may buffer and catch up a moment later.
 
 **Rooms**
+
 - 🔗 **Treat invite links like a party invitation.** Anyone with the link can knock, but **only people you admit can get in**, so only admit people you know.
 - 👥 Up to **15 people** per party.
 - 🕒 Rooms are temporary. They live in the server's memory and **reset if the server restarts** (for example after an update) or after 6 hours with nobody connected. If a room disappears, the host just starts a new one.
 - 💤 The website runs on a free plan that can **sleep when unused**. The first visit after a quiet period may take up to a minute.
 
 **General**
+
 - 🙅 ReelRoom is an independent project and is **not affiliated with Netflix, JioHotstar or Amazon Prime Video**. It doesn't bypass DRM, download content, block ads or change what you can watch.
 - 📝 Be kind in the chat. The host can mute or remove people.
 
@@ -231,6 +240,7 @@ The ReelRoom panel has two tabs.
 ## Privacy & permissions
 
 **What ReelRoom stores**
+
 - Your **name, email and profile photo** (from Google, or what you enter), stored with Firebase Authentication.
 - Your **preferences**: chosen streaming services and genres, saved in Firebase Firestore.
 - **Party data** (who's in the room, chat messages, the current title and position) is kept **in memory only while the room exists**. It isn't saved to a database.
@@ -238,12 +248,12 @@ The ReelRoom panel has two tabs.
 
 **What the extension can access**
 
-| Permission | Why |
-| --- | --- |
+| Permission                                     | Why                                                                                             |
+| ---------------------------------------------- | ----------------------------------------------------------------------------------------------- |
 | `netflix.com`, `hotstar.com`, `primevideo.com` | To find the video player, keep it in sync and show the ReelRoom panel. **Only on these sites.** |
-| `storage` | To remember your sign-in token and settings (such as chat popups). |
-| `activeTab`, `scripting` | So the toolbar button can open the ReelRoom panel on the tab you're looking at. |
-| `clipboardWrite` | To copy invite links when you click the room chip. |
+| `storage`                                      | To remember your sign-in token and settings (such as chat popups).                              |
+| `activeTab`, `scripting`                       | So the toolbar button can open the ReelRoom panel on the tab you're looking at.                 |
+| `clipboardWrite`                               | To copy invite links when you click the room chip.                                              |
 
 The extension doesn't read your browsing history, your streaming account details, or any other website.
 
@@ -251,22 +261,22 @@ The extension doesn't read your browsing history, your streaming account details
 
 ## Troubleshooting
 
-| Problem | What to try |
-| --- | --- |
-| **The website keeps loading** | The free server is waking up. Wait up to a minute and refresh. |
-| **"Couldn't reach the ReelRoom server"** | Same as above: open the website once to wake it up, then try again. |
-| **The website says the extension isn't installed** | Check it's enabled in `chrome://extensions`, then refresh the website. Make sure you loaded the folder that contains `manifest.json`. |
-| **"Update available"** | Download the extension again, replace the folder's contents, click ↻ reload in `chrome://extensions`, and refresh your tabs. |
-| **No ReelRoom button on the streaming site** | Refresh the streaming tab after installing or updating the extension. Make sure you're on a title's *watch* page (the player), not the home page. |
-| **"This room doesn't exist or has expired"** | The room was closed, timed out or reset after a server restart. Ask the host for a new link. Check the code for typos too. |
+| Problem                                                  | What to try                                                                                                                                                                                        |
+| -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **The website keeps loading**                            | The free server is waking up. Wait up to a minute and refresh.                                                                                                                                     |
+| **"Couldn't reach the ReelRoom server"**                 | Same as above: open the website once to wake it up, then try again.                                                                                                                                |
+| **The website says the extension isn't installed**       | Check it's enabled in `chrome://extensions`, then refresh the website. Make sure you loaded the folder that contains `manifest.json`.                                                              |
+| **"Update available"**                                   | Download the extension again, replace the folder's contents, click ↻ reload in `chrome://extensions`, and refresh your tabs.                                                                       |
+| **No ReelRoom button on the streaming site**             | Refresh the streaming tab after installing or updating the extension. Make sure you're on a title's _watch_ page (the player), not the home page.                                                  |
+| **"This room doesn't exist or has expired"**             | The room was closed, timed out or reset after a server restart. Ask the host for a new link. Check the code for typos too.                                                                         |
 | **My friend shows as "in" but their video doesn't sync** | They probably joined from the web page instead of the extension. Ask them to open the invite link again and click **Join with the ReelRoom extension**, then open the title on the streaming site. |
-| **"Waiting for host to let you in…"** | The host needs to click **Admit**, in the People tab or on the notice. |
-| **I paused but it started playing again** | You don't have playback control. Click **Request control** and ask the host. |
-| **"Click to sync playback"** | Chrome blocked autoplay. Click the button once. |
-| **"The party is watching X on Netflix"** | You're on a different title or service. Click **Go there to sync**. |
-| **My send button shows a countdown** | The host set a message gap. Wait for the countdown to finish. |
-| **"Your ReelRoom sign-in expired"** | Click **Sign in again** in the panel, or sign in on the website. |
-| **Still stuck?** | Reload the extension in `chrome://extensions`, refresh the streaming tab, and [open an issue](https://github.com/Lakshya-0601/watch-party/issues) with a screenshot. |
+| **"Waiting for host to let you in…"**                    | The host needs to click **Admit**, in the People tab or on the notice.                                                                                                                             |
+| **I paused but it started playing again**                | You don't have playback control. Click **Request control** and ask the host.                                                                                                                       |
+| **"Click to sync playback"**                             | Chrome blocked autoplay. Click the button once.                                                                                                                                                    |
+| **"The party is watching X on Netflix"**                 | You're on a different title or service. Click **Go there to sync**.                                                                                                                                |
+| **My send button shows a countdown**                     | The host set a message gap. Wait for the countdown to finish.                                                                                                                                      |
+| **"Your ReelRoom sign-in expired"**                      | Click **Sign in again** in the panel, or sign in on the website.                                                                                                                                   |
+| **Still stuck?**                                         | Reload the extension in `chrome://extensions`, refresh the streaming tab, and [open an issue](https://github.com/Lakshya-0601/watch-party/issues) with a screenshot.                               |
 
 ---
 
@@ -295,7 +305,7 @@ The extension doesn't read your browsing history, your streaming account details
                                                     └───────────────────────────┘
 ```
 
-The room holds one authoritative playback state, `{ playing, position, rate, updatedAt }`. Each player computes where it *should* be (`position + elapsed × rate`), hard-seeks when it's far off, and nudges its speed by ±5% when it's slightly off. Changes made by people with control are broadcast, and changes the engine makes itself are recognised and never echoed back.
+The room holds one authoritative playback state, `{ playing, position, rate, updatedAt }`. Each player computes where it _should_ be (`position + elapsed × rate`), hard-seeks when it's far off, and nudges its speed by ±5% when it's slightly off. Changes made by people with control are broadcast, and changes the engine makes itself are recognised and never echoed back.
 
 ### Project structure
 
