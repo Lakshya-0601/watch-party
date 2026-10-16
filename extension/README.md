@@ -50,11 +50,11 @@ app/app-bridge.js (on the ReelRoom web app) ── token hand-off ──► chro
 ## Tests
 
 ```bash
-node extension/test/sync-engine.test.mjs   # 19 unit tests, FakeVideo (queued async events, keyframe snapping, autoplay blocking)
-node extension/test/e2e.test.mjs           # 12-step host+guest run of the real background.js + engine via gateway & room server
+node extension/test/sync-engine.test.mjs   # 22 unit tests, FakeVideo (queued async events, keyframe snapping, autoplay blocking)
+node extension/test/e2e.test.mjs           # 13-step host+guest run of the real background.js + engine via gateway & room server
 ```
 
-The e2e drives two simulated browsers (in-memory `chrome.*`, Node's native WebSocket) through: token hand-off → create party → knock → admit → host play/pause → unauthorised guest seek (reverted) → control request/grant → guest fast-forward and speed change → chat + reactions → guest service-worker restart → end party.
+The e2e drives two simulated browsers (in-memory `chrome.*`, Node's native WebSocket) through: token hand-off → create party → knock → admit → host play/pause → unauthorised guest seek (reverted) → control request/grant → guest fast-forward and speed change → chat + reactions → host-set message gap → guest service-worker restart → end party.
 
 Measured on a production build (`next build && next start`, same machine): room broadcast p50 18 ms / p95 29 ms through the gateway; a host pause reaches the guest's player in ~315 ms including the deliberate 250 ms debounce, and paused players land on the same frame. 30/30 consecutive e2e runs passed on the final build.
 
@@ -63,7 +63,8 @@ Measured on a production build (`next build && next start`, same machine): room 
 ## Known limits
 
 * **Not yet verified on live streaming sites.** The DOM selectors, URL shapes and Netflix's (undocumented) player API in `site-adapters.js` / `netflix-bridge.js` reflect the sites at the time of writing and need checking with real accounts; failures degrade to plain `<video>` control and `document.title`.
-* Prime Video ad breaks pause syncing via a best-effort selector; JioHotstar/Prime "next episode" handovers rely on the URL change heuristic.
+* Ad breaks (all three services) are detected from on-screen ad labels/markers or a clip far shorter than the feature; while one plays, that viewer is left alone and nothing is broadcast, then they jump back to the party. Not yet verified against live ad-supported accounts.
+* JioHotstar/Prime "next episode" handovers rely on the URL change heuristic.
 * **Playback timestamps:** playback changes carry `at` (the sender's clock-synced server time), so request latency doesn't shift other viewers.
 * The token is issued for the user in the web app's session cookie (`/api/extension/token`).
 * For production: set `APP_ORIGIN` / `REALTIME_URL` in `shared/config.js`, add your app origin to `host_permissions` + the app-bridge `matches`, and share `REELROOM_TOKEN_SECRET` between the app and the gateway.
