@@ -31,20 +31,6 @@ export const STREAMING_SERVICES: StreamingService[] = [
     tagline: "Prestige originals",
   },
   {
-    id: "max",
-    name: "Max",
-    color: "#5b4dff",
-    tile: "linear-gradient(135deg, #00093c 0%, #2c1fbf 100%)",
-    tagline: "HBO, DC & Warner Bros.",
-  },
-  {
-    id: "hulu",
-    name: "Hulu",
-    color: "#1ce783",
-    tile: "linear-gradient(135deg, #04140c 0%, #0b3a24 100%)",
-    tagline: "Next-day TV & FX",
-  },
-  {
     id: "crunchyroll",
     name: "Crunchyroll",
     color: "#f47521",

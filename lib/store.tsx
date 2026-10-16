@@ -13,6 +13,7 @@
  */
 
 import { useSyncExternalStore } from "react";
+import { SERVICE_BY_ID } from "@/lib/data/services";
 import type { Genre, ServiceId, User } from "@/lib/types";
 
 interface PersistedState {
@@ -31,7 +32,10 @@ function readStorage(): PersistedState {
     if (!raw) return EMPTY;
     const saved = { ...EMPTY, ...(JSON.parse(raw) as Partial<PersistedState>) };
     // Disney+ became JioHotstar
-    saved.services = saved.services.map((s) => ((s as string) === "disney" ? "hotstar" : s));
+    saved.services = saved.services
+      .map((s) => ((s as string) === "disney" ? "hotstar" : s))
+      // Services we no longer list (Max, Hulu) drop out of old saved picks
+      .filter((s) => SERVICE_BY_ID[s] !== undefined);
     return saved;
   } catch {
     return EMPTY;

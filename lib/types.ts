@@ -7,8 +7,6 @@ export type ServiceId =
   | "hotstar"
   | "prime"
   | "appletv"
-  | "max"
-  | "hulu"
   | "crunchyroll";
 
 export type Genre =

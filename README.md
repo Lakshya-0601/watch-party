@@ -62,7 +62,7 @@ The website at **[reelroom-vz4n.onrender.com](https://reelroom-vz4n.onrender.com
 |                             |                                                                                                                                                                   |
 | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 🔄 **Synced playback**      | Play, pause, seek and playback speed stay in sync for everyone, usually within a fraction of a second. Small drifts are corrected smoothly without jarring jumps. |
-| 📺 **7 streaming services** | Discover titles on Netflix, JioHotstar, Prime Video, Apple TV+, Max, Hulu and Crunchyroll. Watch parties work on Netflix, JioHotstar and Prime Video. |
+| 📺 **5 streaming services** | Discover titles on Netflix, JioHotstar, Prime Video, Apple TV+ and Crunchyroll. Watch parties work on Netflix, JioHotstar and Prime Video. |
 | 🎟️ **Host approval**        | Guests "knock" and the host admits or declines them. Up to **15 people** per party.                                                                               |
 | 🎮 **Playback control**     | By default only the host controls playback. Guests can **request control**, and the host can grant or revoke it at any time.                                      |
 | 💬 **Live chat**            | Messages up to 50 characters, with an emoji picker. Optional one-second popups at the bottom of the screen show new messages while you watch.                     |

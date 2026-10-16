@@ -77,39 +77,6 @@ export function BrandMark({ id, className }: { id: ServiceId; className?: string
           </text>
         </svg>
       );
-    case "max":
-      return (
-        <svg {...common}>
-          <text
-            x="60"
-            y="35"
-            textAnchor="middle"
-            fill="#fff"
-            fontFamily="Arial Black, Arial, sans-serif"
-            fontWeight="900"
-            fontSize="30"
-            letterSpacing="-1"
-          >
-            max
-          </text>
-        </svg>
-      );
-    case "hulu":
-      return (
-        <svg {...common}>
-          <text
-            x="60"
-            y="35"
-            textAnchor="middle"
-            fill="#1ce783"
-            fontFamily="Arial Black, Arial, sans-serif"
-            fontWeight="900"
-            fontSize="30"
-          >
-            hulu
-          </text>
-        </svg>
-      );
     case "crunchyroll":
       return (
         <svg {...common}>

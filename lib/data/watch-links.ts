@@ -21,8 +21,6 @@ export const SERVICE_LINKS: Record<ServiceId, ServiceLinks> = {
   hotstar: { home: "https://www.hotstar.com/in/home", search: (s) => `https://www.hotstar.com/in/explore?search_query=${q(s)}` },
   prime: { home: "https://www.primevideo.com/", search: (s) => `https://www.primevideo.com/search?phrase=${q(s)}` },
   appletv: { home: "https://tv.apple.com/", search: (s) => `https://tv.apple.com/search?term=${q(s)}` },
-  max: { home: "https://play.hbomax.com/", search: (s) => `https://play.hbomax.com/search?q=${q(s)}` },
-  hulu: { home: "https://www.hulu.com/hub/home", search: (s) => `https://www.hulu.com/search?q=${q(s)}` },
   crunchyroll: { home: "https://www.crunchyroll.com/", search: (s) => `https://www.crunchyroll.com/search?q=${q(s)}` },
 };
 
