@@ -20,6 +20,21 @@
       chrome.runtime.sendMessage({ type: "auth:set", token: msg.token, user: msg.user, expiresAt: msg.expiresAt });
     } else if (msg.type === "logout") {
       chrome.runtime.sendMessage({ type: "auth:clear" });
+    } else if (msg.type === "join-room" && typeof msg.code === "string") {
+      // An invite link opened on the site: join the party in the extension, where playback syncs
+      chrome.runtime.sendMessage({ type: "room:join", code: msg.code }, (res) => {
+        void chrome.runtime.lastError;
+        window.postMessage(
+          {
+            source: "reelroom-extension",
+            type: "join-room-result",
+            code: msg.code,
+            ok: Boolean(res?.ok),
+            error: res?.ok ? undefined : (res?.error ?? "The extension didn't respond — reload it in chrome://extensions."),
+          },
+          location.origin,
+        );
+      });
     } else if (msg.type === "ping") {
       // The app checking whether the extension is installed (onboarding, watch-party modal)
       window.postMessage({ source: "reelroom-extension", type: "pong", version }, location.origin);

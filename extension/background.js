@@ -386,13 +386,15 @@ chrome.runtime.onConnect.addListener((port) => {
   port.onDisconnect.addListener(() => ports.delete(port));
 });
 
-/** Token hand-off from the web app (via app/app-bridge.js on the app origin only). */
+/** Messages from the web app (via app/app-bridge.js on the app origin only): sign-in hand-off and invite links. */
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   const fromApp = sender.url && new URL(sender.url).origin === CONFIG.APP_ORIGIN;
   if (!fromApp || !msg || typeof msg.type !== "string") return;
 
   (async () => {
     try {
+      // Invite link opened on the site → knock on the room from the extension
+      if (msg.type === "room:join") return sendResponse(await connectToRoom(String(msg.code ?? "")));
       await handleAuthMessage(msg);
       sendResponse({ ok: true });
     } catch (err) {

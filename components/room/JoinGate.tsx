@@ -156,7 +156,7 @@ function NameForm({
   );
 }
 
-function Card({ icon, heading, children }: { icon: React.ReactNode; heading: string; children: React.ReactNode }) {
+export function Card({ icon, heading, children }: { icon: React.ReactNode; heading: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-1 items-center justify-center px-4 py-12">
       <div className="w-full max-w-md animate-fade-up rounded-3xl bg-surface/85 p-8 text-center ring-1 ring-line backdrop-blur-xl">

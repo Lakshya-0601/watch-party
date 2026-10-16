@@ -13,6 +13,7 @@ import { ReactionBar, ReactionLayer } from "@/components/room/ReactionLayer";
 import { ChatPanel } from "@/components/room/ChatPanel";
 import { PeoplePanel } from "@/components/room/PeoplePanel";
 import { JoinGate } from "@/components/room/JoinGate";
+import { ExtensionJoinGate } from "@/components/room/ExtensionJoinGate";
 import { Toasts } from "@/components/room/Toasts";
 import { ChatPopups } from "@/components/room/ChatPopups";
 import { useChatPopups } from "@/lib/rooms/prefs";
@@ -37,6 +38,8 @@ export function WatchRoom({ code }: { code: string }) {
   const [copied, setCopied] = useState(false);
   const [confirmEnd, setConfirmEnd] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  /** A guest chose to join from this page instead of through the extension */
+  const [joinOnWeb, setJoinOnWeb] = useState(false);
   const popupsOn = useChatPopups();
 
   const title = TITLES.find((t) => t.id === view?.titleId) ?? null;
@@ -72,6 +75,9 @@ export function WatchRoom({ code }: { code: string }) {
           <div className="grid flex-1 place-items-center" role="status">
             <LoaderCircle className="size-6 animate-spin text-ember" aria-label="Opening the room" />
           </div>
+        ) : view?.media && !view.ended && view.me.status === "none" && !joinOnWeb && connection !== "missing" ? (
+          // Streaming-site party: join through the extension so playback actually syncs
+          <ExtensionJoinGate code={code} view={view} onUseWeb={() => setJoinOnWeb(true)} />
         ) : (
           <JoinGate
             view={view}
