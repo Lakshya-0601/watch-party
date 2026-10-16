@@ -46,6 +46,14 @@
  *  fires its event within milliseconds and takes over via `localPending`.
  *  Remote playback changes (`force`) still apply immediately.
  *
+ * ── Ad breaks ───────────────────────────────────────────────────────────────
+ *  People on ad-supported plans get ads the others don't. While this page is
+ *  in an ad (`checkAd()`: the site adapter's ad markers, or a clip far
+ *  shorter than the feature), the engine steps aside: the ad plays, nothing
+ *  it does is broadcast, and the room carries on without us. When the ad
+ *  ends we wait AD_GRACE_MS for the player to settle, then jump straight to
+ *  where the party is now.
+ *
  * ── States ──────────────────────────────────────────────────────────────────
  *   DETACHED ──attach(video)──► ATTACHED ──update({enabled:true})──► SYNCING
  *       ▲                          │  ▲                                  │
@@ -63,12 +71,13 @@
     /**
      * @param {{
      *   adapter: { play(v: HTMLVideoElement): Promise<void>, pause(v: HTMLVideoElement): void,
-     *              seek(v: HTMLVideoElement, t: number): Promise<void> | void, isAdPlaying?(): boolean },
+     *              seek(v: HTMLVideoElement, t: number): Promise<void> | void, isAdPlaying?(v: HTMLVideoElement): boolean },
      *   config: typeof ReelRoom.CONFIG.SYNC,
      *   expectedPosition: (playback: any, serverNow: number) => number,
      *   onLocalChange: (snapshot: { playing: boolean, position: number, rate: number, at: number }) => void,
      *   onRejected?: (reason: "no-control" | "autoplay-blocked") => void,
      *   onStats?: (stats: { driftMs: number, state: string }) => void,
+     *   onAdChange?: (inAd: boolean) => void,
      *   clock?: () => number,
      * }} opts
      */
@@ -94,6 +103,10 @@
       this.awaitEchoUntil = 0;
       this.lastAppliedKey = ""; // identity of the last playback state we applied
       this.blocked = false; // autoplay was refused; needs a user gesture
+      this.adActive = false; // this page is showing an ad the party isn't
+      this.adGraceUntil = 0; // just left an ad: hold off until the player settles
+      this.adTimer = null;
+      this.longestDuration = 0; // the feature's length, to spot short ad clips
 
       this.onMediaEvent = this.onMediaEvent.bind(this);
       this.tick = setInterval(() => this.reconcile(), this.cfg.CHECK_MS);
@@ -122,12 +135,58 @@
       for (const type of MEDIA_EVENTS) this.video.removeEventListener(type, this.onMediaEvent);
       this.restoreRate();
       this.video = null;
+      this.setAd(false); // an ad's own <video> going away usually means the break is over
     }
 
     destroy() {
       clearInterval(this.tick);
       clearTimeout(this.debounceTimer);
+      clearTimeout(this.adTimer);
       this.detach();
+    }
+
+    /** A different title is on screen: forget the old feature's length. */
+    resetContent() {
+      this.longestDuration = 0;
+    }
+
+    /* ------------------------------------------------------- ad breaks -- */
+
+    /** True while this page is in an ad break (updates `adActive` and tells the overlay). */
+    checkAd() {
+      const v = this.video;
+      return this.setAd(Boolean(v && (this.opts.adapter.isAdPlaying?.(v) || this.isShortClip(v))));
+    }
+
+    /** An ad clip in the player: far shorter than the feature we've seen on this page. */
+    isShortClip(v) {
+      const d = v.duration;
+      if (!Number.isFinite(d) || d <= 0) return false;
+      if (d > this.longestDuration) this.longestDuration = d;
+      return this.longestDuration >= 600 && d < Math.min(180, this.longestDuration * 0.2);
+    }
+
+    setAd(ad) {
+      if (ad === this.adActive) return ad;
+      this.adActive = ad;
+      clearTimeout(this.adTimer);
+      if (ad) {
+        // Whatever the user was doing belongs to the ad, not the party
+        clearTimeout(this.debounceTimer);
+        this.localPending = false;
+        this.divergedSince = 0;
+        this.restoreRate();
+      } else {
+        this.adGraceUntil = now() + this.cfg.AD_GRACE_MS;
+        this.adTimer = setTimeout(() => this.reconcile(true), this.cfg.AD_GRACE_MS + 50);
+      }
+      this.opts.onAdChange?.(ad);
+      return ad;
+    }
+
+    /** In an ad, or just out of one. */
+    inAdBreak() {
+      return this.checkAd() || now() < this.adGraceUntil;
     }
 
     /**
@@ -191,8 +250,8 @@
       if (!v || !pb || !this.enabled) return this.report(0);
       if (this.localPending) return; // the user just acted: their intent goes first (see flushLocal)
       if (!force && now() < this.awaitEchoUntil) return; // waiting for our echo
+      if (this.inAdBreak()) return this.report(0); // let the ad play; we rejoin when it ends
       if (v.readyState < 2 || v.seeking) return; // let the player settle; next tick retries
-      if (this.opts.adapter.isAdPlaying?.()) return; // never fight an ad break
 
       const target = this.targetPosition();
       const drift = v.currentTime - target;
@@ -292,6 +351,7 @@
       if (this.consume(e.type)) return; // guard 1: our own programmatic change
       if (e.type === "seeked" && this.isSeekEcho()) return; // guard 2: trailing seek echo
       if (e.type === "ratechange" && this.nudging) return; // drift nudges are never user intent
+      if (this.inAdBreak()) return; // the ad starting, pausing, ending… is not a party action
       this.localPending = true;
       this.divergedSince = 0; // explained: it was the user
       clearTimeout(this.debounceTimer);
@@ -315,6 +375,7 @@
       this.localPending = false;
       const v = this.video;
       if (!v || !this.enabled || !this.playback) return;
+      if (this.inAdBreak()) return; // the ad began inside the debounce window
       // `at` dates the snapshot on the server clock, so network delay doesn't skew the room
       const local = { playing: !v.paused, position: v.currentTime, rate: this.userRate(), at: this.serverNow() };
 

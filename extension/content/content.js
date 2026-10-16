@@ -23,6 +23,7 @@
   let state = null; // latest background state
   let video = null;
   let autoplayBlocked = false;
+  let adBreak = false; // an ad is playing here (not for the rest of the party)
   let lastSwitchUrl = null;
 
   /* -------------------------------------------------- background port -- */
@@ -76,6 +77,10 @@
         engine.revert();
         overlay.toast({ title: "Couldn't sync your change", body: res.error, tone: "bad" });
       }
+    },
+    onAdChange: (inAd) => {
+      adBreak = inAd;
+      render();
     },
     onRejected: (reason) => {
       if (reason === "autoplay-blocked") {
@@ -143,6 +148,7 @@
       mediaMatches,
       hasVideo: Boolean(video),
       autoplayBlocked,
+      adBreak,
     });
   }
 
@@ -179,6 +185,7 @@
   const urlPoll = setInterval(() => {
     if (location.href === lastHref) return;
     lastHref = location.href;
+    engine.resetContent();
     finder.scan();
     render();
   }, 1000);

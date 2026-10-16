@@ -4,8 +4,8 @@ export const ROOM_CAPACITY = 15;
 
 /** Longest chat message, counted in characters (an emoji counts once). */
 export const CHAT_MAX_CHARS = 50;
-/** After sending a message, each person waits this long before the next one. */
-export const CHAT_COOLDOWN_MS = 15_000;
+/** The host can make guests wait between messages ("slow mode"): 0 (off) up to this many seconds. */
+export const MAX_CHAT_COOLDOWN_S = 30;
 
 /** Characters as people count them (emoji = 1), matching the server's check. */
 export const chatLength = (text: string) => [...text].length;
@@ -93,6 +93,8 @@ export interface RoomView {
   };
   /** Host has muted the chat for everyone else */
   chatMuted: boolean;
+  /** Seconds guests wait between messages, set by the host (0 = no wait) */
+  chatCooldownS: number;
   /** Admitted members only (host also sees pending requests here) */
   members?: MemberView[];
   playback?: Playback;
@@ -117,6 +119,8 @@ export type RoomAction =
   | { type: "react"; emoji: string }
   /** Host: silence chat + reactions for everyone but the host */
   | { type: "mute-chat"; muted: boolean }
+  /** Host: seconds guests must wait between messages (0–MAX_CHAT_COOLDOWN_S) */
+  | { type: "set-chat-cooldown"; seconds: number }
   /** Host: silence one person */
   | { type: "mute-member"; targetId: string; muted: boolean }
   /** Host moved to another title (e.g. next episode); everyone follows */

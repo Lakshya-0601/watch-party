@@ -26,7 +26,7 @@
 
   // Keep in step with lib/rooms/types.ts (the server enforces the same rules)
   const CHAT_MAX_CHARS = 50;
-  const CHAT_COOLDOWN_MS = 15_000;
+  const MAX_CHAT_COOLDOWN_S = 30; // the host picks 0 (off) … 30 s between guests' messages
   const POPUP_MS = 1000;
   const chatLength = (text) => [...text].length;
 
@@ -130,6 +130,13 @@
             $("popupsChip", h("button.chip", { onclick: () => this.setPopups(!this.popupsOn) })),
             $("muteChip", h("button.chip.danger", { hidden: true, onclick: () => this.toggleChatMute() })),
           ),
+          $("gapRow", h("label.gap-row", { hidden: true, title: "How long guests wait between messages" },
+            h("span", {}, "⏱ Message gap"),
+            $("gapInput", h("input", { type: "range", min: 0, max: MAX_CHAT_COOLDOWN_S, step: 1, value: 0,
+              "aria-label": "Seconds between guests' messages", oninput: () => this.onGapInput() })),
+            $("gapValue", h("output.gap-value")),
+          )),
+          $("gapNote", h("p.gap-note", { hidden: true })),
           $("messages", h("ol.messages", { "aria-live": "polite" })),
           $("reactBar", h("div.react-bar", { role: "group", "aria-label": "Send a reaction" },
             QUICK_REACTIONS.map((e) => h("button", { title: `React ${e}`, onclick: () => this.react(e) }, e)))),
@@ -297,6 +304,10 @@
         return set("warn", "The party is watching ", h("strong", {}, v.media.title), ` on ${where}.`,
           h("div.row", {}, h("button.btn.light", { onclick: () => this.cb.onOpenMedia(v.media.url) }, "Go there to sync")));
       }
+      if (ctx.adBreak) {
+        return set("warn", h("strong", {}, "Ad break on your side. "),
+          "The party keeps watching — you'll jump right back in with everyone when the ad ends.");
+      }
       if (ctx.autoplayBlocked) {
         return set("warn", "Your browser blocked autoplay.",
           h("div.row", {}, h("button.btn.primary", { onclick: () => this.cb.onResumeSync() }, "Click to sync playback")));
@@ -335,6 +346,16 @@
       mute.hidden = !v.me.isHost;
       mute.setAttribute("aria-pressed", String(Boolean(v.chatMuted)));
       mute.textContent = v.chatMuted ? "🔇 Chat muted" : "Mute chat";
+
+      // Message gap: the host gets a slider, guests a one-line note when it's on
+      const gap = v.chatCooldownS ?? 0;
+      this.els.gapRow.hidden = !v.me.isHost;
+      if (v.me.isHost && this.gapDraft == null) {
+        this.els.gapInput.value = String(gap);
+        this.renderGapValue(gap);
+      }
+      this.els.gapNote.hidden = v.me.isHost || !gap;
+      this.els.gapNote.textContent = `⏱ The host set a ${gap}s gap between messages`;
 
       const blocked = this.chatBlocked(v);
       this.els.composer.dataset.blocked = String(Boolean(blocked));
@@ -558,6 +579,25 @@
       if (this.els) this.renderPopupsChip();
     }
 
+    renderGapValue(seconds) {
+      this.els.gapValue.textContent = seconds ? `${seconds}s` : "Off";
+      this.els.gapInput.setAttribute("aria-valuetext", seconds ? `${seconds} seconds` : "Off");
+    }
+
+    /** Host dragged the gap slider: show it now, send it once the slider settles. */
+    onGapInput() {
+      const seconds = Number(this.els.gapInput.value);
+      this.gapDraft = seconds;
+      this.renderGapValue(seconds);
+      clearTimeout(this.gapTimer);
+      this.gapTimer = setTimeout(async () => {
+        const res = await this.cb.onAction({ type: "set-chat-cooldown", seconds });
+        this.gapDraft = null;
+        if (!res.ok) this.toast({ title: "Couldn't change the message gap", body: res.error, tone: "bad" });
+        if (this.state?.view) this.renderChatControls(this.state.view);
+      }, 400);
+    }
+
     async toggleChatMute() {
       const v = this.state?.view;
       if (!v?.me.isHost) return;
@@ -659,7 +699,7 @@
     cooldownLeft() {
       const readyAt = this.state?.view?.me.chatReadyAt ?? 0;
       const left = readyAt - (Date.now() + (this.state?.clockOffset ?? 0));
-      return Math.min(CHAT_COOLDOWN_MS, Math.max(0, left));
+      return Math.min((this.state?.view?.chatCooldownS ?? 0) * 1000, Math.max(0, left));
     }
 
     /** Hard cap at CHAT_MAX_CHARS characters (an emoji counts once, like the server). */

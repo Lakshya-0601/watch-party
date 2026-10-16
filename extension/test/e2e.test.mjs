@@ -300,6 +300,24 @@ try {
     assert.ok(h.view.chat.some((m) => m.text === "this soundtrack 😭" && m.authorName === "Kai"));
   });
 
+  await step("host sets the message gap (0–30 s): guests wait, the host doesn't", async () => {
+    const act = (tab, action) => tab.call({ type: "action", action });
+    assert.equal((await act(guestTab, { type: "set-chat-cooldown", seconds: 5 })).ok, false, "guests can't change it");
+    assert.equal((await act(hostTab, { type: "set-chat-cooldown", seconds: 31 })).ok, false, "over 30 s is refused");
+    assert.ok((await act(hostTab, { type: "set-chat-cooldown", seconds: 2 })).ok);
+    await guestTab.until((s) => s.view?.chatCooldownS === 2, "guest sees the gap");
+    await sleep(2100); // the guest's earlier message may still be inside the new gap
+    assert.ok((await act(guestTab, { type: "chat", text: "one" })).ok);
+    const second = await act(guestTab, { type: "chat", text: "two" });
+    assert.equal(second.ok, false, "guest's second message inside the gap");
+    assert.match(second.error ?? "", /Wait \ds/);
+    assert.ok((await act(hostTab, { type: "chat", text: "a" })).ok && (await act(hostTab, { type: "chat", text: "b" })).ok, "host isn't slowed down");
+    assert.ok((await act(hostTab, { type: "set-chat-cooldown", seconds: 0 })).ok);
+    await guestTab.until((s) => s.view?.chatCooldownS === 0, "gap off");
+    assert.ok((await act(guestTab, { type: "chat", text: "three" })).ok, "gap off → can send right away");
+    return `guest blocked: "${second.error}"`;
+  });
+
   await step("guest's service worker is killed and restarts → rejoins without host approval", async () => {
     guestTab.port.disconnect();
     guestTab.engine.destroy();

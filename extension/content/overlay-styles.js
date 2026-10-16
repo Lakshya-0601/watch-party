@@ -102,6 +102,12 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--ember); out
 .chip:hover { background: rgba(255,255,255,.12); }
 .chip.code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .05em; }
 .chip[aria-pressed="false"]:not(.danger) { color: var(--muted); }
+.gap-row { display: flex; align-items: center; gap: 10px; padding: 7px 12px; border-bottom: 1px solid var(--line);
+  font-size: 11.5px; color: var(--muted); }
+.gap-row span { white-space: nowrap; }
+.gap-row input { flex: 1; min-width: 0; accent-color: var(--ember); cursor: pointer; }
+.gap-value { width: 30px; text-align: right; color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+.gap-note { padding: 6px 12px; border-bottom: 1px solid var(--line); font-size: 11px; color: var(--muted); }
 .chip.danger[aria-pressed="true"] { color: var(--danger); border-color: rgba(255,90,110,.4); background: rgba(255,90,110,.12); }
 
 .react-bar { display: flex; justify-content: space-between; padding: 6px 12px; border-top: 1px solid var(--line); }

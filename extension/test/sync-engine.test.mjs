@@ -27,16 +27,18 @@ const adapter = {
   },
 };
 
-function setup({ canControl = true, video: videoOpts } = {}) {
+function setup({ canControl = true, video: videoOpts, adapter: adapterOverride } = {}) {
   const sent = [];
   const rejected = [];
+  const ads = [];
   const video = new FakeVideo(videoOpts);
   const engine = new SyncEngine({
-    adapter,
+    adapter: adapterOverride ?? adapter,
     config: CONFIG.SYNC,
     expectedPosition: protocol.expectedPosition,
     onLocalChange: (s) => sent.push(s),
     onRejected: (r) => rejected.push(r),
+    onAdChange: (inAd) => ads.push(inAd),
   });
   engine.attach(video);
   // Room says: paused at 0
@@ -46,7 +48,7 @@ function setup({ canControl = true, video: videoOpts } = {}) {
     engine.update({ playback: room, clockOffset: 0, canControl, enabled: true });
   };
   push({});
-  return { engine, video, sent, rejected, push, get room() { return room; } };
+  return { engine, video, sent, rejected, ads, push, get room() { return room; } };
 }
 
 const results = [];
@@ -307,6 +309,59 @@ await test("disabled engine (other title / not admitted) ignores events and room
   await sleep(600);
   assert.ok(Math.abs(t.video.currentTime - 42) < 0.05);
   assert.equal(t.sent.length, 0);
+  t.engine.destroy();
+});
+
+await test("ad break: the ad's pauses/seeks aren't broadcast, and the viewer rejoins the party afterwards", async () => {
+  let inAd = false;
+  const t = setup({ adapter: { ...adapter, isAdPlaying: () => inAd } });
+  t.push({ playing: true, position: 100 });
+  await sleep(400);
+  assert.ok(Math.abs(t.video.currentTime - 100) < 1.5, `synced at ${t.video.currentTime}`);
+
+  // Ad starts: the player pauses the feature and plays the ad
+  inAd = true;
+  t.video.userPause();
+  await sleep(1300);
+  assert.deepEqual(t.ads, [true], "overlay told about the ad");
+  assert.equal(t.sent.length, 0, `ad pause was broadcast: ${JSON.stringify(t.sent)}`);
+  assert.equal(t.video.paused, true, "engine must not fight the ad");
+
+  // Ad ends: after the grace period we jump to where the party is now
+  inAd = false;
+  t.video.userPlay();
+  await sleep(CONFIG.SYNC.AD_GRACE_MS + 1300);
+  assert.deepEqual(t.ads, [true, false]);
+  const target = protocol.expectedPosition(t.room, Date.now());
+  assert.ok(Math.abs(t.video.currentTime - target) < CONFIG.SYNC.HARD_SEEK_S, `at ${t.video.currentTime}, party at ${target}`);
+  assert.equal(t.video.paused, false);
+  assert.equal(t.sent.length, 0, `ad end was broadcast: ${JSON.stringify(t.sent)}`);
+  t.engine.destroy();
+});
+
+await test("ad break: a short clip in a feature-length player counts as an ad", async () => {
+  const t = setup({ video: { duration: 5400 } });
+  t.push({ playing: false, position: 2000 });
+  await sleep(300);
+  t.video.duration = 30; // the player swapped in a 30 s ad
+  t.video.userSeek(0);
+  await sleep(1300);
+  assert.deepEqual(t.ads, [true]);
+  assert.equal(t.sent.length, 0);
+  assert.ok(t.video.currentTime < 30, "the ad isn't seeked to the party position");
+  t.engine.destroy();
+});
+
+await test("after an ad break, the user's own actions sync again", async () => {
+  let inAd = true;
+  const t = setup({ adapter: { ...adapter, isAdPlaying: () => inAd } });
+  await sleep(1100);
+  inAd = false;
+  await sleep(CONFIG.SYNC.CHECK_MS + CONFIG.SYNC.AD_GRACE_MS + 300); // next check notices the ad ended, then the grace period
+  t.video.userSeek(321);
+  await sleep(700);
+  assert.equal(t.sent.length, 1, `expected one broadcast, got ${JSON.stringify(t.sent)}`);
+  assert.ok(Math.abs(t.sent[0].position - 321) < 0.5);
   t.engine.destroy();
 });
 

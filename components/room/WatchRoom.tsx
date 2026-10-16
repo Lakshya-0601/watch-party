@@ -256,9 +256,11 @@ export function WatchRoom({ code }: { code: string }) {
         myId={pid}
         me={me}
         chatMuted={view.chatMuted}
+        chatCooldownS={view.chatCooldownS}
         clockOffset={room.clockOffset}
         onSend={(text) => send({ type: "chat", text })}
         onMuteChat={(muted) => void act({ type: "mute-chat", muted })}
+        onSetCooldown={(seconds) => void act({ type: "set-chat-cooldown", seconds })}
       />
 
       {popupsOn && <ChatPopups popups={room.popups} />}

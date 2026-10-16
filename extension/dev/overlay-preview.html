@@ -48,7 +48,7 @@
       ];
       const view = (patch = {}) => ({
         code: "nfx-711-wch", titleId: null, hostName: "Maya K", serverTime: Date.now(), ended: false,
-        admittedCount: 4, capacity: 15, chatMuted: false,
+        admittedCount: 4, capacity: 15, chatMuted: false, chatCooldownS: 10,
         media: { provider: "netflix", url: "https://www.netflix.com/watch/80057281", title: "Stranger Things" },
         me: { id: me.id, status: "admitted", isHost: false, control: "none", muted: false, chatReadyAt: 0 },
         members, chat, reactions: [],

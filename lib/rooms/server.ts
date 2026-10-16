@@ -11,8 +11,8 @@
  */
 
 import {
-  CHAT_COOLDOWN_MS,
   CHAT_MAX_CHARS,
+  MAX_CHAT_COOLDOWN_S,
   ROOM_CAPACITY,
   chatLength,
   type ChatMessage,
@@ -60,6 +60,8 @@ interface Room {
   reactions: Reaction[];
   /** Host muted chat + reactions for everyone else */
   chatMuted: boolean;
+  /** Seconds guests wait between messages (host-set, 0 = off) */
+  chatCooldownS: number;
   ended: boolean;
   lastActive: number;
   subscribers: Set<Subscriber>;
@@ -162,6 +164,7 @@ export function createRoom(input: {
     chat: [],
     reactions: [],
     chatMuted: false,
+    chatCooldownS: 0,
     ended: false,
     lastActive: Date.now(),
     subscribers: new Set(),
@@ -193,9 +196,11 @@ function viewFor(room: Room, pid: string): RoomView {
       isHost,
       control: me?.control ?? "none",
       muted: me?.muted ?? false,
-      chatReadyAt: me?.lastChatAt ? me.lastChatAt + CHAT_COOLDOWN_MS : 0,
+      // The host is never slowed down by their own setting
+      chatReadyAt: me?.lastChatAt && !isHost && room.chatCooldownS ? me.lastChatAt + room.chatCooldownS * 1000 : 0,
     },
     chatMuted: room.chatMuted,
+    chatCooldownS: room.chatCooldownS,
   };
   // People who haven't been let in don't get the stream, chat or roster
   if (me?.status !== "admitted") return base;
@@ -393,7 +398,7 @@ export function applyAction(code: string, pid: string, action: RoomAction): Resu
       if (!text) return fail(400, "Message is empty.");
       if (chatLength(text) > CHAT_MAX_CHARS) return fail(400, `Messages can be up to ${CHAT_MAX_CHARS} characters.`);
       const now = Date.now();
-      const wait = me!.lastChatAt + CHAT_COOLDOWN_MS - now;
+      const wait = isHost ? 0 : me!.lastChatAt + room.chatCooldownS * 1000 - now;
       if (wait > 0) return fail(429, `Wait ${Math.ceil(wait / 1000)}s before sending another message.`);
       me!.lastChatAt = now;
       room.chat.push({ id: crypto.randomUUID(), kind: "text", authorId: pid, authorName: me!.name, text, at: now });
@@ -422,6 +427,18 @@ export function applyAction(code: string, pid: string, action: RoomAction): Resu
       if (room.chatMuted === muted) return { ok: true };
       room.chatMuted = muted;
       systemMessage(room, muted ? "The host muted the chat" : "The host unmuted the chat");
+      break;
+    }
+
+    case "set-chat-cooldown": {
+      if (!isHost) return fail(403, "Only the host can change the message gap.");
+      const seconds = Math.round(Number(action.seconds));
+      if (!Number.isFinite(seconds) || seconds < 0 || seconds > MAX_CHAT_COOLDOWN_S) {
+        return fail(400, `The gap can be 0–${MAX_CHAT_COOLDOWN_S} seconds.`);
+      }
+      if (room.chatCooldownS === seconds) return { ok: true };
+      room.chatCooldownS = seconds;
+      systemMessage(room, seconds ? `The host set a ${seconds}s gap between messages` : "The host turned off the message gap");
       break;
     }
 

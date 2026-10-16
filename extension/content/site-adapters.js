@@ -13,6 +13,59 @@
 
   const text = (selector) => document.querySelector(selector)?.textContent?.replace(/\s+/g, " ").trim() || null;
 
+  /* ------------------------------------------------------------ ad breaks -- */
+
+  // Short on-screen labels players show during ads: "Ad", "Ad 1 of 2", "Ad · 0:15",
+  // "Skip Ad", "Advertisement", "Your video will resume after the ad", Hindi "विज्ञापन"…
+  const AD_LABELS = [
+    /^(?:ad|ads|advert|advertisement|sponsored|विज्ञापन)$/i,
+    /^ads?\s*[·•:|(-]?\s*\d/i,
+    /^ads?\s+(?:break|ends?|remaining)\b/i,
+    /\bskip\s+ads?\b/i,
+    /\b(?:after|following)\s+(?:this|the)\s+ads?\b/i,
+    /\bads?\s+(?:break\s+)?ends?\s+in\b/i,
+    /^विज्ञापन/,
+  ];
+  // Attribute markers several players put on their ad UI
+  const AD_MARKERS = [
+    '[aria-label*="skip ad" i]',
+    '[aria-label^="advertisement" i]',
+    '[data-uia*="ads-" i]',
+    '[data-uia*="ad-break" i]',
+    '[data-testid*="ad-badge" i]',
+    '[data-testid*="ad-overlay" i]',
+    '[data-testid*="skip-ad" i]',
+    '[class*="ad-badge" i]',
+    '[class*="adBadge"]',
+    '[class*="ad-countdown" i]',
+    '[class*="ad-timer" i]',
+  ].join(",");
+  const MAX_TEXT_NODES = 600;
+
+  const visible = (el) =>
+    el.checkVisibility ? el.checkVisibility({ opacityProperty: true, visibilityProperty: true }) : el.getClientRects().length > 0;
+
+  /** The player chrome around the video: a few levels up, where ad badges and timers live. */
+  function playerRoot(video) {
+    let el = video;
+    for (let i = 0; i < 6 && el.parentElement && el.parentElement !== document.body; i++) el = el.parentElement;
+    return el;
+  }
+
+  /** A visible ad label or ad marker in the player — works across Netflix, JioHotstar and Prime. */
+  function adLabelVisible(video) {
+    if (!video?.isConnected) return false;
+    const root = playerRoot(video);
+    for (const el of root.querySelectorAll(AD_MARKERS)) if (visible(el)) return true;
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    for (let n = 0, node = walker.nextNode(); node && n < MAX_TEXT_NODES; n++, node = walker.nextNode()) {
+      const label = node.nodeValue.replace(/\s+/g, " ").trim();
+      if (!label || label.length > 48) continue;
+      if (AD_LABELS.some((re) => re.test(label)) && node.parentElement && visible(node.parentElement)) return true;
+    }
+    return false;
+  }
+
   /** Plain HTMLMediaElement control — fine for JioHotstar and Prime Video. */
   const generic = {
     play: (video) => video.play(),
@@ -20,7 +73,7 @@
     seek: (video, seconds) => {
       video.currentTime = seconds;
     },
-    isAdPlaying: () => false,
+    isAdPlaying: (video) => adLabelVisible(video),
   };
 
   /* ------------------------------------------------------------- Netflix -- */
@@ -116,8 +169,9 @@
       text(".atvwebplayersdk-title-text") ??
       document.title.replace(/^Prime Video:\s*/i, "").replace(/\s*[|–-]\s*Prime Video\s*$/i, "").trim(),
     // Ad breaks swap the stream; syncing through them would drag everyone around.
-    isAdPlaying: () =>
-      Boolean(document.querySelector(".atvwebplayersdk-ad-timer-text, .atvwebplayersdk-adtimeindicator-text, [class*='adtimeindicator']")),
+    isAdPlaying: (video) =>
+      [...document.querySelectorAll(".atvwebplayersdk-ad-timer-text, .atvwebplayersdk-adtimeindicator-text, [class*='adtimeindicator']")]
+        .some(visible) || adLabelVisible(video),
   };
 
   ReelRoom.adapters = { netflix, hotstar, prime };

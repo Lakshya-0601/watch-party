@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { Bell, BellOff, Check, Copy, MessageCircle, MessageSquareOff, SendHorizontal, Smile, X } from "lucide-react";
+import { Bell, BellOff, Check, Copy, MessageCircle, MessageSquareOff, SendHorizontal, Smile, Timer, X } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { copyText } from "@/lib/clipboard";
 import { roomUrl } from "@/lib/room";
 import { setChatPopups, useChatPopups } from "@/lib/rooms/prefs";
-import { CHAT_COOLDOWN_MS, CHAT_MAX_CHARS, chatLength, type ChatMessage, type RoomView } from "@/lib/rooms/types";
+import { CHAT_MAX_CHARS, MAX_CHAT_COOLDOWN_S, chatLength, type ChatMessage, type RoomView } from "@/lib/rooms/types";
 import { cn } from "@/lib/cn";
 
 const EMOJIS = [
@@ -25,11 +25,15 @@ interface Props {
   me: RoomView["me"];
   /** Host has muted the chat for everyone else */
   chatMuted: boolean;
+  /** Seconds guests wait between messages (host-set, 0 = off) */
+  chatCooldownS: number;
   /** serverTime ≈ Date.now() + clockOffset */
   clockOffset: number;
   onSend: (text: string) => Promise<{ ok: boolean; error?: string }>;
   /** Host only: mute / unmute the chat for everyone */
   onMuteChat: (muted: boolean) => void;
+  /** Host only: set the gap between guests' messages */
+  onSetCooldown: (seconds: number) => void;
 }
 
 const timeOf = (ts: number) => new Date(ts).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
@@ -59,7 +63,20 @@ const noSubscribe = () => () => {};
 const useNow = (active: boolean) => useSyncExternalStore(active ? subscribeClock : noSubscribe, () => clockNow, () => 0);
 
 /** Openable room chat with the room code, emoji picker, send cooldown and host mute. */
-export function ChatPanel({ open, onClose, code, messages, myId, me, chatMuted, clockOffset, onSend, onMuteChat }: Props) {
+export function ChatPanel({
+  open,
+  onClose,
+  code,
+  messages,
+  myId,
+  me,
+  chatMuted,
+  chatCooldownS,
+  clockOffset,
+  onSend,
+  onMuteChat,
+  onSetCooldown,
+}: Props) {
   const [text, setText] = useState("");
   const [picker, setPicker] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -83,7 +100,7 @@ export function ChatPanel({ open, onClose, code, messages, myId, me, chatMuted, 
   if (!open) return null;
 
   const blocked = me.isHost ? null : me.muted ? "The host muted you" : chatMuted ? "The host muted the chat" : null;
-  const waitMs = Math.min(CHAT_COOLDOWN_MS, Math.max(0, me.chatReadyAt - (now + clockOffset)));
+  const waitMs = Math.min(chatCooldownS * 1000, Math.max(0, me.chatReadyAt - (now + clockOffset)));
   const waitS = Math.ceil(waitMs / 1000);
   const length = chatLength(text);
 
@@ -179,6 +196,15 @@ export function ChatPanel({ open, onClose, code, messages, myId, me, chatMuted, 
             </button>
           )}
         </div>
+        {me.isHost ? (
+          <CooldownSlider seconds={chatCooldownS} onCommit={onSetCooldown} />
+        ) : (
+          chatCooldownS > 0 && (
+            <p className="mt-2 flex items-center gap-1.5 text-[11px] text-muted">
+              <Timer className="size-3.5" /> The host set a {chatCooldownS}s gap between messages
+            </p>
+          )
+        )}
       </header>
 
       <div ref={listRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-3" aria-live="polite">
@@ -268,6 +294,41 @@ export function ChatPanel({ open, onClose, code, messages, myId, me, chatMuted, 
         </div>
       </form>
     </aside>
+  );
+}
+
+/** Host control: 0–30 s between guests' messages. Sends once the slider settles. */
+function CooldownSlider({ seconds, onCommit }: { seconds: number; onCommit: (seconds: number) => void }) {
+  const [draft, setDraft] = useState<number | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(timer.current), []);
+  const value = draft ?? seconds;
+
+  function change(next: number) {
+    setDraft(next);
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => {
+      onCommit(next);
+      setDraft(null);
+    }, 400);
+  }
+
+  return (
+    <label className="mt-2.5 flex items-center gap-2.5 text-[11px] text-muted">
+      <Timer className="size-3.5 shrink-0" />
+      <span className="shrink-0">Message gap</span>
+      <input
+        type="range"
+        min={0}
+        max={MAX_CHAT_COOLDOWN_S}
+        step={1}
+        value={value}
+        onChange={(e) => change(Number(e.target.value))}
+        aria-valuetext={value ? `${value} seconds` : "Off"}
+        className="h-1 min-w-0 flex-1 cursor-pointer accent-ember"
+      />
+      <span className="w-8 shrink-0 text-right font-medium tabular-nums text-white/80">{value ? `${value}s` : "Off"}</span>
+    </label>
   );
 }
 

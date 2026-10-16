@@ -32,6 +32,7 @@
       ECHO_WINDOW_MS: 1_500, // how long a programmatic change may take to fire its event
       ECHO_SEEK_TOLERANCE_S: 0.75, // a "seeked" this close to our own target is our echo
       AWAIT_ECHO_MS: 1_500, // after broadcasting, ignore stale room state this long
+      AD_GRACE_MS: 1_500, // after an ad break, let the player settle before jumping to the party
       CONFIRM_MS: 300, // an unexplained local mismatch must persist this long before drift checks act
     }),
   });
